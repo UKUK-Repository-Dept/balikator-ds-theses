@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Messages on {{year}}-{{month}}-{{day}}{% endblock %}
+
+{% block navlinks %}
+<li><a href="/">Overview</a></li>
+<li><a href="/monthly/">Monthly</a></li>
+<li class="active"><a href="/daily/">Daily</a></li>
+
+<li><a href="/write/">Write</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid container-cards-pf">
+ <div class="row row-cards-pf">
+  <div class="col-md-8 col-md-push-2">
+   <div class="card-pf card-pf-accented card-pf-aggregate-status">
+    <h2 class="card-pf-title">
+     <span class="card-pf-aggregate-status-count">
+      <span class="fa fa-envelope"></span>25
+     </span>
+     messages on <strong>{{year}}-{{month}}-{{day}}</strong>
+    </h2>
+    <div class="card-pf-body">
+     <p class="card-pf-aggregate-status-notifications">
+      <span class="card-pf-aggregate-status-notification" title="Sent">
+       <span class="text-success">
+        <i class="pficon pficon-ok"></i>20
+       </span>
+      </span>
+      <span class="card-pf-aggregate-status-notification" title="Incoming">
+       <span class="text-warning">
+        <i class="pficon pficon-users"></i>5
+       </span>
+      </span>
+      <span class="card-pf-aggregate-status-notification" title="Outgoing">
+       <span class="text-muted">
+        <i class="pficon fa-send"></i>20
+       </span>
+      </span>
+      <span class="card-pf-aggregate-status-notification" title="Checked">
+       <span class="text-muted">
+        <i class="pficon pficon-running"></i>20
+       </span>
+      </span>
+      <span class="card-pf-aggregate-status-notification" title="Failed">
+       <span class="text-danger">
+        <i class="pficon pficon-error-circle-o"></i>3
+       </span>
+      </span>
+     </p>
+    </div>
+   </div>
+  </div>
+ </div>
+</div>
+
+<div class="container-fluid">
+ <div class="row">
+  <div class="col-md-8 col-md-push-2">
+   <h2>Messages On {{year}}-{{month}}-{{day}}</h2>
+
+   <div class="toast-pf alert sms sent">
+    <time class="pull-right">13:47:44</time>
+    <i class="pficon {{state|to_icon}}"></i>
+    <span class="phone">{{phone|format_phone}}</span>
+    <p>Heleno, tohle je testovací zpráva! Doufám, že dorazila v pořádku! Měj se krásně!</p>
+   </div>
+  </div>
+ </div>
+</div>
+{% endblock %}

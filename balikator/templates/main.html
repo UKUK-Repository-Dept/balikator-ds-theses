@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if year == None and state == None %}
+        Recent Batches
+    {% elif year == None %}
+        Recently {{state.capitalize()}} Batches
+    {% elif state == None %}
+        Batches
+    {% else %}
+        {{state.capitalize()}} Batches
+    {% endif %}
+{% endblock %}
+
+{% block navlinks %}
+    <li{% if year == None %} class="active"{% endif %}>
+        <a href="/">Overview</a>
+    </li>
+    <li{% if year != None %} class="active"{% endif %}>
+        <a href="/monthly/">Monthly</a>
+    </li>
+    <li><a href="/daily/">Daily</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid container-cards-pf">
+ <div class="row row-cards-pf">
+  <div class="col-md-8 col-md-push-2">
+   <div class="card-pf card-pf-accented card-pf-aggregate-status">
+    <h2 class="card-pf-title">
+     <!--<a href="." class="card-pf-aggregate-status-count">-->
+         Theses workflow status:
+     <!--</a>-->
+     {% if wf_status == 'running' %}
+        <strong>running</strong> <span class="text-success"><i class="pficon pficon-running"></i></span>
+     {% elif wf_status == 'stopped' %}
+        <strong>stopped</strong> <span class="text-warning"><i class="pficon pficon-ok"></i></span>
+     {% elif wf_status == 'failed' %}
+        <strong>failed</strong> <span class="text-danger"><i class="pficon pficon-error-circle-o"></i></span>
+     {% else %}
+        <strong>unknown status</strong> <span class="text-danger"><i class="pficon pficon-error-circle-o"></i></span>
+     {% endif %}
+    </h2>
+    <div class="card-pf-body">
+    </div>
+   </div>
+  </div>
+ </div>
+</div>
+<div class="container-fluid container-cards-pf">
+ <div class="row row-cards-pf">
+  <div class="col-md-4 col-md-push-2">
+   <div class="card-pf card-pf-accented card-pf-aggregate-status">
+    <h2 class="card-pf-title">
+     <a href="." class="card-pf-aggregate-status-count">
+      <span class=""><i class="pficon pficon-enterprise"></i></span>{{ total_b }}
+     </a>
+     {% if year == None %}
+        batches in the past <strong>14</strong> days
+     {% else %}
+        batches in <strong>{{year}}-{{month}}</strong>
+     {% endif %}
+    </h2>
+    <div class="card-pf-body">
+     <p class="card-pf-aggregate-status-notifications">
+      <!--<a href="planned" class="card-pf-aggregate-status-notification" title="Processed">-->
+       <!--<span class="text-muted">-->
+        <!--<i class="pficon fa fa-send"></i>{{ total_b }}-->
+       <!--</span>-->
+      <!--</a>-->
+         <a href="finished" class="card-pf-aggregate-status-notification" title="Finished">
+            <span class="text-success"><i class="pficon pficon-ok"></i>{{ total_b_finished }}
+            </span>
+        </a>
+      <a href="finished with errors" class="card-pf-aggregate-status-notification" title="Finished with errors">
+       <span class="text-warning">
+        <i class="pficon pficon-running"></i>{{ total_b_errors }}
+       </span>
+      </a>
+
+      <a href="failed" class="card-pf-aggregate-status-notification" title="Failed">
+       <span class="text-danger">
+        <i class="pficon pficon-error-circle-o"></i>{{ total_b_failed }}
+       </span>
+      </a>
+
+      <!--<a href="outgoing" class="card-pf-aggregate-status-notification" title="Outgoing">
+       <span class="text-muted">
+        <i class="pficon fa fa-send"></i>30
+       </span>
+      </a>-->
+
+     </p>
+    </div>
+   </div>
+  </div>
+  <div class="col-md-4 col-md-push-2">
+   <div class="card-pf card-pf-accented card-pf-aggregate-status">
+    <h2 class="card-pf-title">
+     <a href="." class="card-pf-aggregate-status-count">
+      <span class="fa fa-book"></span>{{ total_d }}
+     </a>
+     {% if year == None %}
+        documents in the past <strong>14</strong> days
+     {% else %}
+        documents in <strong>{{year}}-{{month}}</strong>
+     {% endif %}
+    </h2>
+    <div class="card-pf-body">
+     <p class="card-pf-aggregate-status-notifications">
+      <a href="planned" class="card-pf-aggregate-status-notification" title="Processed">
+       <span class="text-muted">
+        <i class="pficon fa fa-send"></i>{{ total_d }}
+       </span>
+      </a>
+         <a href="finished" class="card-pf-aggregate-status-notification" title="Finished">
+            <span class="text-success"><i class="pficon pficon-ok"></i>{{ total_d_finished }}
+            </span>
+        </a>
+      <a href="started" class="card-pf-aggregate-status-notification" title="Finished with errors">
+       <span class="text-warning">
+        <i class="pficon pficon-running"></i>{{ total_d_skipped }}
+       </span>
+      </a>
+
+      <a href="failed" class="card-pf-aggregate-status-notification" title="Failed">
+       <span class="text-danger">
+        <i class="pficon pficon-error-circle-o"></i>{{ total_d_failed }}
+       </span>
+      </a>
+
+      <!--<a href="outgoing" class="card-pf-aggregate-status-notification" title="Outgoing">
+       <span class="text-muted">
+        <i class="pficon fa fa-send"></i>30
+       </span>
+      </a>-->
+
+     </p>
+    </div>
+   </div>
+  </div>
+ </div>
+ <div class="row row-cards-pf">
+  <div class="col-md-8 col-md-push-2">
+   <div id="trend"></div>
+   <hr>
+  </div>
+ </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 col-md-push-2">
+            {% if year == None and state == None %}
+            <h2>Recent Batches</h2>
+            {% elif year == None %}
+            <h2>Recently {{state.capitalize()}} Batches</h2>
+            {% elif state == None %}
+            <h2>Batches</h2>
+            {% else %}
+            {{state.capitalize()}} Batches
+            {% endif %}
+
+        {% for b in batches %}
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="toast-pf alert sms {{b.state|to_alert}}">
+                        <div class="row">
+                            <div class="col-md-5">
+                                <p class="b_name">
+                                    name: <strong>{{ b.name }}</strong>
+                                    <!--<time class="pull-right">{{b.finished|format_ts}}</time>-->
+                                </p>
+                                <p class="b_uuid">
+                                    uuid: <strong>{{ b.uuid }}</strong>
+                                </p>
+                                <p class="b_created">
+                                    created: {{ b.created|format_ts }}
+                                </p>
+                                <p class="b_finished">
+                                    finished: <time>{{b.finished|format_ts}}</time>
+                                </p>
+                            </div>
+                            <div class="col-md-7">
+                                <h2 class="card-pf-title">Document counts</h2>
+                                <p class="card-pf-aggregate-status-notifications">
+                                    <a href="b_docs_finished/{{ b.uuid }}" class="card-pf-aggregate-status-notification" title="Finished">
+                                        <span class="text-success"><i class="pficon pficon-ok"></i>{{ get_batch_docs_stats(b.uuid).finished }}</span>
+                                    </a>
+                                    <a href="b_docs_failed/{{ b.uuid }}" class="card-pf-aggregate-status-notification" title="Failed">
+                                        <span class="text-danger"><i class="pficon pficon-error-circle-o"></i>{{ get_batch_docs_stats(b.uuid).failed }}</span>
+                                    </a>
+                                    <a href="b_docs_failed/{{ b.uuid }}" class="card-pf-aggregate-status-notification" title="Skipped">
+                                        <span class="text-warning"><i class="pficon pficon-running"></i>{{ get_batch_docs_stats(b.uuid).skipped }}</span>
+                                    </a>
+                                </p>
+                            </div>
+                        </div>
+
+                        {% if b.state == 'finished' %}
+                        <i class="pficon {{b.state|to_icon}}"></i>
+                        {% elif b.state == 'finished with errors' %}
+                        <i class="pficon {{b.state|to_icon}}"></i>
+                        {% elif b.state == 'failed' %}
+                        <i class="pficon {{b.state|to_icon}}"></i>
+                        {% else %}
+                        <i class="pficon pficon-enterprise"></i>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+  // Row Checkbox Selection
+  $(document).ready(function () {
+    $("input[type='checkbox']").change(function (e) {
+      if ($(this).is(":checked")) {
+        $(this).closest('.list-group-item').addClass("active");
+      } else {
+        $(this).closest('.list-group-item').removeClass("active");
+      }
+    });
+  });
+</script>
+
+<script>
+ var chart = c3.generate({
+  axis: {
+   x: {
+    tick: {
+     format: '%m/%d',
+     outer: true
+    },
+    type: 'timeseries'
+   },
+  },
+  bindto: '#trend',
+  data: {
+   rows: [
+    ['x', 'sent', 'incoming', 'failed'],
+    {% for d in days %}
+   ['{{d.year}}-{{d.month}}-{{d.day}}', {{d.sent}}, {{d.incoming}}, {{d.failed}}],
+    {% endfor %}
+   ],
+   x: 'x',
+   colors: {
+    sent: '#3f9c35',
+    incoming: '#ec7a08',
+    failed: '#cc0000',
+   },
+  },
+  grid: {
+   y: {
+    show: false
+   }
+  },
+  legend: {
+   hide: true
+  },
+  point: {
+   r: 4
+  },
+  size: {
+   height: 200
+  }
+ });
+</script>
+{% endblock %}

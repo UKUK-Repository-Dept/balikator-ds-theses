@@ -1,0 +1,23 @@
+## INI file other the config/example.ini
+*.ini
+!example.ini
+
+## output directory
+output/
+
+## Ignore projects files created by IntelliJ IDEA
+*.iml
+*.ipr
+*.iws
+.idea/
+.overlays/
+
+## Ignore *.pyc files
+*.pyc
+
+## Vim
+*~
+*.swp
+
+## bak files
+*.bak

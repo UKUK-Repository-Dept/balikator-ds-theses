@@ -11,6 +11,8 @@ output/
 *.iws
 .idea/
 .overlays/
+## Ignore project files created by VSCode
+.vscode/
 
 ## Ignore *.pyc files
 *.pyc

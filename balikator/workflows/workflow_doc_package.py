@@ -635,6 +635,24 @@ class workflow_doc_package(object):
             :return: None
             """
 
+            # if document is not public, use a premade thumbnail instead of creating one from the fulltext file
+            if doc.work_availability == 'N':
+                log.msg("{} - Práce je neveřejná - KÓD {} - POUŽÍVÁM PŘEDPŘIPRAVENÝ NÁHLEDOVÝ OBRÁZEK".format(doc.doc_id, doc.work_availability))
+                # thmb_path = self.config.get('thumbnails','custom_cs')
+                # append custom CZECH thumbnail
+                if os.path.exists(self.config.get('thumbnails', 'custom_cs')):
+                    log.msg("Adding custom czech thumbnail from {}".format(self.config.get('thumbnails', 'custom_cs')))
+                    append_thumb_to_contents(thmb_path=self.config.get('thumbnails', 'custom_cs'))
+                    shutil.copy(self.config.get('thumbnails', 'custom_cs'), doc.out_dir)
+                # append custom ENGLISH thumbnail
+                if os.path.exists(self.config.get('thumbnails', 'custom_en')):
+                    log.msg("Adding custom czech thumbnail from {}".format(self.config.get('thumbnails', 'custom_en')))
+                    append_thumb_to_contents(thmb_path=self.config.get('thumbnails', 'custom_en'))
+                    shutil.copy(self.config.get('thumbnails', 'custom_en'), doc.out_dir)
+
+                doc.thmb_file = None
+                return doc.thmb_file
+
             # get file location
             for f_name, f_info in doc.work_files.items():
                 log.msg("TYP SOUBORU (FTYP): ", f_info['ftyp'])
@@ -643,20 +661,7 @@ class workflow_doc_package(object):
                     text_loc = f_info['local_renamed_file']
                     if os.path.exists(text_loc):
                         log.msg("Path exists: {}".format(text_loc))
-                        # FIXME: For some PDF files, thumbnail generation fails - Postscript delegate error:
-                        # FIXME:
-                        # Error: /undefined in --run--
-                        # Mar 20 13:16:51 dodo python[27533]: Operand stack:
-                        # Mar 20 13:16:51 dodo python[27533]: --dict:1/1(L)--   Nums
-                        # Mar 20 13:16:51 dodo python[27533]: Execution stack:
-                        # Mar 20 13:16:51 dodo python[27533]: %interp_exit   .runexec2   --nostringval--   --nostringval--   --nostringval--   2   %stopped_push   --nostringval--   --nostringval--   --nostringval--   false   1   %stopped
-                        # Mar 20 13:16:51 dodo python[27533]: Dictionary stack:
-                        # Mar 20 13:16:51 dodo python[27533]: --dict:1172/1684(ro)(G)--   --dict:1/20(G)--   --dict:82/200(L)--   --dict:82/200(L)--   --dict:109/127(ro)(G)--   --dict:292/300(ro)(G)--   --dict:25/32(L)--
-                        # Mar 20 13:16:51 dodo python[27533]: Current allocation mode is local
-                        # Mar 20 13:16:51 dodo python[27533]: GPL Ghostscript 9.07: Unrecoverable error, exit code 1
-                        # Mar 20 13:16:51 dodo python[27533]: 2017-03-20 13:16:51+0100 [-] Postscript delegate failed `/023fe3db-8861-4735-98f8-57a7e04d794e/26600/RPTX_2005_2_11210_ASZK00844_131915_0_26600.pdf'
-                        # Mar 20 13:16:51 dodo python[27533]: 2017-03-20 13:16:51+0100 [-] Failed to generate thumbnail file.
-
+                        
                         try:
                             log.msg(os.listdir(os.path.dirname(text_loc)))
                             thmb_path = self.utility.create_thumb_from_pdf(pdf_path=text_loc)

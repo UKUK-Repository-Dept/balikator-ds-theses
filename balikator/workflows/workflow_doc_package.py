@@ -656,7 +656,18 @@ class workflow_doc_package(object):
                         # Mar 20 13:16:51 dodo python[27533]: GPL Ghostscript 9.07: Unrecoverable error, exit code 1
                         # Mar 20 13:16:51 dodo python[27533]: 2017-03-20 13:16:51+0100 [-] Postscript delegate failed `/023fe3db-8861-4735-98f8-57a7e04d794e/26600/RPTX_2005_2_11210_ASZK00844_131915_0_26600.pdf'
                         # Mar 20 13:16:51 dodo python[27533]: 2017-03-20 13:16:51+0100 [-] Failed to generate thumbnail file.
-
+                        
+                        # if document is not public, use a premade thumbnail instead of creating one from the fulltext file
+                        if doc.work_availability == 'N':
+                            log.msg("{} - Práce je neveřejná - KÓD {} - POUŽÍVÁM PŘEDPŘIPRAVENÝ NÁHLEDOVÝ OBRÁZEK".format(doc.doc_id, doc.work_availability))
+                            # thmb_path = self.config.get('thumbnails','custom_cs')
+                            # append custom CZECH thumbnail
+                            append_thumb_to_contents(thmb_path=self.config.get('thumbnails', 'custom_cs'))
+                            
+                            # append custom ENGLISH thumbnail
+                            append_thumb_to_contents(thmb_path=self.config.get('thumbnails', 'custom_en'))
+                            
+                            doc.thmb_file = None
                         try:
                             log.msg(os.listdir(os.path.dirname(text_loc)))
                             thmb_path = self.utility.create_thumb_from_pdf(pdf_path=text_loc)

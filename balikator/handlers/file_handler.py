@@ -120,6 +120,6 @@ class FileHandler(object):
                     " " + "'" + permission_group + "'" + "\t" + "description:" + description)
 
             fh.write(os.path.basename(thmb_path) + "\t" + "bundle:" + bundle + "\t" + "permissions:" + permission +
-                     " " + "'" + permission_group + "'" + "\t" + "description:" + description)
+                     " " + "'" + permission_group + "'" + "\t" + "description:" + description + '\n')
         except:
             raise Exception('Failed to append thumbnail information to contents file.')

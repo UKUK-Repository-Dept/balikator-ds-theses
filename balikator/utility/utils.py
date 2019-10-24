@@ -333,7 +333,7 @@ class utility(object):
         log.msg("First page: ", first_page)
         img = Image(filename=first_page)
         img.format = 'png'
-        img.resize(275, 412)
+        img.resize(200, 300)
         img.background_color = Color('white')
         img.alpha_channel = 'remove'
         img.save(filename=thmb_path)

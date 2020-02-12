@@ -261,6 +261,11 @@ class workflow_theses(object):
                            for b_file in self.utility.listdir(input_dir_path, is_remote, sftp_client=self.sftp) if
                            b_file.endswith('.xml') and re.match(self.config.get('balikator', 'batch_name_pattern'),
                                                                 b_file)]
+
+            # Sort the list of files alphabeticaly
+            batch_files = sorted(batch_files)
+            log.msg("Sorted batches:\n{}".format(batch_files))
+            
             return batch_files
 
         def create_work_path():

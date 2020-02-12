@@ -636,6 +636,7 @@ class workflow_doc_package(object):
             """
 
             # if document is not public, use a premade thumbnail instead of creating one from the fulltext file
+            log.msg("WORK AVAILABILITY CODE: ", doc.work_availability)
             if doc.work_availability == 'N':
                 log.msg("{} - Práce je neveřejná - KÓD {} - POUŽÍVÁM PŘEDPŘIPRAVENÝ NÁHLEDOVÝ OBRÁZEK".format(doc.doc_id, doc.work_availability))
                 # thmb_path = self.config.get('thumbnails','custom_cs')

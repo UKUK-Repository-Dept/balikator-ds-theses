@@ -25,4 +25,5 @@ sqlsoup==0.9.1
 urllib3==1.25.3
 Wand==0.5.5
 #Werkzeug==0.15.5
-zope.interface==4.6.0
+#zope.interface==4.6.0
+zope.interface

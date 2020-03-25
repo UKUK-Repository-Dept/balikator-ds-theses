@@ -2,8 +2,8 @@
 *.ini
 !example.ini
 
-postgress-*
-!postgress-passwd.example
+postgres-*
+!postgres-passwd.example
 
 ## output directory
 output/

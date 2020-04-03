@@ -164,6 +164,7 @@ class Manager(object):
         in the internal database.
         :return: None
         """
+        log.msg("Workflow: {}\tSTATE: {}".format(self.workflow_theses.name, self.workflow_theses.state))
 
         if self.config.getboolean('workflow_theses', 'using_remote_server') is True:
             log.msg("WORKFLOW THESES is using remote server...")
@@ -200,7 +201,7 @@ class Manager(object):
             else:
                 self.set_workflow_running()
                 log.msg("Workflow Theses started.")
-                workflow_state = self.workflow_theses.run()
+                workflow_state = self.workflow_theses.run(ssh=self.ssh, scp=self.scp, sftp=self.sftp)
                 self.workflow_theses.state = workflow_state
                 self.db_int.commit()
 

@@ -28,7 +28,6 @@ COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
 
-
 --
 -- Name: EXTENSION "uuid-ossp"; Type: COMMENT; Schema: -; Owner: 
 --
@@ -1452,14 +1451,14 @@ ALTER TABLE ONLY errors_workflow
     ADD CONSTRAINT workflow_id_errors_w_id_fkey FOREIGN KEY (workflow_id) REFERENCES workflow(id);
 
 
---
--- Name: public; Type: ACL; Schema: -; Owner: postgres
---
+-- --
+-- -- Name: public; Type: ACL; Schema: -; Owner: postgres
+-- --
 
-REVOKE ALL ON SCHEMA public FROM PUBLIC;
-REVOKE ALL ON SCHEMA public FROM postgres;
-GRANT ALL ON SCHEMA public TO postgres;
-GRANT ALL ON SCHEMA public TO PUBLIC;
+-- REVOKE ALL ON SCHEMA public FROM PUBLIC;
+-- REVOKE ALL ON SCHEMA public FROM postgres;
+-- GRANT ALL ON SCHEMA public TO postgres;
+-- GRANT ALL ON SCHEMA public TO PUBLIC;
 
 
 --

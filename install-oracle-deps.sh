@@ -1,12 +1,10 @@
 #!/usr/bin/env bash
-unzip $PREREQUISITIES/oracle/instantclient-basic-linux.zip -d /opt/oracle
-unzip $PREREQUISITIES/oracle/instantclient-sdk-linux.zip -d /opt/oracle
+unzip $PREREQUISITIES/oracle/instantclient-basic-linux.x64-19.6.0.0.0dbru.zip -d /opt/oracle
+unzip $PREREQUISITIES/oracle/instantclient-sdk-linux.x64-19.6.0.0.0dbru.zip -d /opt/oracle
 mv /opt/oracle/instantclient_* /opt/oracle/instantclient
-ln -s /opt/oracle/instantclient/libclntsh.so.* /opt/oracle/instantclient/libclntsh.so
-ln -s /opt/oracle/instantclient/libocci.so.* /opt/oracle/instantclient/libocci.so
 
-export ORACLE_HOME="/opt/oracle/instantclient"
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$ORACLE_HOME
+export ORACLE_DIR="/opt/oracle/instantclient"
+export LD_LIBRARY_PATH=$ORACLE_DIR:$LD_LIBRARY_PATH
 
 export OCI_HOME="/opt/oracle/instantclient"
 export OCI_LIB_DIR="/opt/oracle/instantclient"

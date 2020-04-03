@@ -1,0 +1,37 @@
+version: "3.3"
+services:
+    db:
+        container_name: balikator-db
+        image: balikator-db:local
+        ports:
+            - "5431:5432"
+        environment: 
+            - POSTGRES_USER=balikator
+            - POSTGRES_PASSWORD=test
+            - POSTGRES_DB=balikator
+        restart: always
+    app:
+        container_name: balikator-app
+        build: 
+            context: .
+            dockerfile: balikator_core/Dockerfile
+        image: balikator-app:local
+        # 'network_mode: host' can be used if we need to access services listening on host ports (e.g. localhost:5432 etc.)
+        # If we want to connect to database running in another container on port 5431 (see above), 
+        # we would then write the connection string as follows:
+        #       postgresql://balikator_db_username:balikator_db_password@127.0.0.1:5431/database_name
+        # 
+        # instead of:
+        #       postgresql://balikator_db_username:balikator_db_password@[container_name]:5431/database_name
+        #
+        network_mode: "host"
+        # command: python3 balikator_core/balikator-daemon --config=./balikator_core/config/balikator.ini
+        entrypoint: tail -f /dev/null
+        environment: 
+            - DEBUG=True
+        depends_on:
+            - "db"
+        # links:
+        #     - db
+        volumes: 
+            - ./balikator_core:/opt/data/balikator/balikator_core

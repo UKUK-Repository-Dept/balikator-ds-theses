@@ -42,6 +42,14 @@ class workflow_theses(object):
         self.workflow_batch = None
 
     @property
+    def id(self):
+        return self.workflow.id
+
+    @property
+    def name(self):
+        return self.workflow.name
+
+    @property
     def state(self):
         return self.workflow.state
 

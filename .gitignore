@@ -8,6 +8,9 @@ postgres-*
 ## output directory
 output/
 
+## test data directory
+test_data/
+
 ## Ignore projects files created by IntelliJ IDEA
 *.iml
 *.ipr

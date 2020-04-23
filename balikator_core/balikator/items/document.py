@@ -550,6 +550,14 @@ class Document(object):
         :return:
         """
         command = self.construct_command()
+        # try:
+
+        #     #stdin, stdout, stderr = ssh.exec_command('sudo -i -u ' + self.config.get('dspace', 'ds_user_username'))
+        #     stdin, stdout, stderr = ssh.exec_command('sudo -i -u dspace')
+        # except Exception as e:
+        #     raise e 
+        
+        #FIXME: This returns error code: 126 (not executable - perhaps because we are trying to execute the command as user without sufficient privileges?)
         try:
             stdin, stdout, stderr = ssh.exec_command(command)
         except Exception as e:
@@ -740,7 +748,7 @@ class Document(object):
 
         log.msg("DSPACE REQUEST STATUS CODE:: ", r.status_code)
 
-        if r.status_code == requests.codes.ok:
+        if r.status_code == r.ok:
             log.msg("DSPACE API response code:", r.status_code)
             log.msg("Document with handle", handle, "found in DSpace!")
             log.msg("Document handle:", handle)

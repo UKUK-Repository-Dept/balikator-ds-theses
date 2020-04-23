@@ -188,7 +188,8 @@ class workflow_doc_import(object):
             raise Exception("Package incomplete,", package_status)
 
         # copy package file to remote or local import folder
-        if self.config.get('import', 'is_remote') is True:
+        if self.config.getboolean('import', 'is_remote') is True:
+            log.msg("IMPORT FOLDER IS REMOTE: ", self.config.get('import', 'is_remote'))
             log.msg('Importing package to REMOTE directory...')
             # remote directory
             try:

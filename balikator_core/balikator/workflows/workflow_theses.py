@@ -15,7 +15,7 @@ from datetime import datetime
 import shutil
 
 
-__all__ = ['WorkflowTheses']
+# __all__ = ['WorkflowTheses']
 
 
 class workflow_theses(object):
@@ -110,7 +110,7 @@ class workflow_theses(object):
     def try_reconnect_dspace(self, db_dspace):
         log.msg("Reconnecting to reconnect to DSpace DB...")
         try:
-            log.msg("Trying test SELECT...");
+            log.msg("Trying test SELECT...")
             db_dspace.execute("SELECT * from handle LIMIT 1")
             #db_dspace.close()
         except exc.DBAPIError as e:
@@ -248,7 +248,9 @@ class workflow_theses(object):
         url = str(ds_base_url) + '/rest/login'
         r = requests.post(url, data=data, headers=headers)
 
-        if r.status_code == requests.codes.ok:
+        # FIXME: Try: if r.ok: 
+        # source: https://stackoverflow.com/questions/47144606/requests-how-to-tell-if-youre-getting-a-success-message
+        if r.ok:
             return r.text
         else:
             raise Exception('Failed to login to DSpace API')
@@ -431,8 +433,8 @@ class workflow_theses(object):
                     os.makedirs(out_dir)
                 else:
                     pass
-            except:
-                raise Exception("Failed to create batch output directory.")
+            except Exception as e:
+                raise e
 
         def insert_batch_to_table(batch_obj):
             """

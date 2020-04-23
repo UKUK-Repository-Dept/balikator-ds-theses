@@ -748,7 +748,7 @@ class Document(object):
 
         log.msg("DSPACE REQUEST STATUS CODE:: ", r.status_code)
 
-        if r.status_code == r.ok:
+        if r.ok:
             log.msg("DSPACE API response code:", r.status_code)
             log.msg("Document with handle", handle, "found in DSpace!")
             log.msg("Document handle:", handle)

@@ -3,6 +3,7 @@
 
 import os
 import shutil
+import json
 from twisted.python import log
 from datetime import datetime
 from subprocess import check_call, CalledProcessError
@@ -173,6 +174,54 @@ class workflow_batch(object):
                 log.msg('Failed to unimport document from local DSpace due to the unexpected error')
                 raise ex
 
+    def get_mapfile_data(self):
+
+        # TODO: Rewrite to get all theses from INDEX
+        collection_items_dict = dict()
+
+        # get items in collection identified by 'ID' stored as a key in option_pair
+        for key, value in self.config.items('import_collections_map'):
+
+            get_more_data = True
+            gathered_docs = 0
+            start_rows = 0
+            collection_items_list = list()
+
+            log.msg("Getting items in collection {}: {}".format(key, value))
+
+            while get_more_data is True:
+
+                    # get collection data from SOLR (json)
+                json_data = self.utility.get_solr_data( info_type="coll_items_info", 
+                                                        collection_id=key,
+                                                        max_rows = self.config.getint('dspace', 'solr_maxrows'),
+                                                        start_rows = start_rows)
+
+                    # get number of hits from collection data
+                hit_count = self.utility.process_solr_item_count(json_data) 
+                
+                log.msg ("Collection {}: {} - HIT COUNT: {}".format(key, value, hit_count))
+                
+                # get needed information from solr response JSON (return a list)
+                processed_solr_data = self.utility.process_solr_item_data(json_data)
+
+                # add all information from response JSON to result list of whole collection
+                collection_items_list.extend(processed_solr_data) 
+                gathered_docs += len(processed_solr_data)
+
+                log.msg("Collection {}: {} - PROCESSED DOCS: {}".format(key, value, gathered_docs))
+
+                # check if further processing is needed
+                if gathered_docs == hit_count:
+                    get_more_data = False
+                else:
+                    start_rows+= self.config.getint('dspace', 'solr_maxrows')
+            
+            # store list of all items in collection in a dict        
+            collection_items_dict[key] = {"items_count": hit_count, "items_data": collection_items_list}
+        
+        return collection_items_dict 
+
     def create_mapfile(self, batch):
         """
 
@@ -181,17 +230,15 @@ class workflow_batch(object):
         """
 
         def create_file():
+            # TODO: This should be a general method of Utility class
             """
 
             :return:
             """
-            b_name, b_suff = batch.batch_file_name.split(sep='.')
+            # b_name, b_suff = batch.batch_file_name.split(sep='.')
             temp_mapfile_dir = self.config.get('balikator', 'dspace_mapfile_temp_dir')
             mf_name = self.config.get('balikator', 'mapfile_name')
-            # mf_suffix = self.config.get('balikator', 'aleph_map_suffix')
-            # mf_name = mf_prefix + b_name + mf_suffix
 
-            # set the mapfile location for batch
             batch.aleph_mapfile = os.path.join(temp_mapfile_dir, mf_name)
             try:
                 file_handle = open(batch.aleph_mapfile, mode='w')
@@ -218,75 +265,53 @@ class workflow_batch(object):
                 log.msg(e)
                 raise Exception('Failed to write DSpace mapfile header.')
 
-            for s_id, s_id_info in mapfile_info.items():
-                if s_id_info['work_type'] not in ['bakalářská práce','diplomová práce','dizertační práce','rigorózní práce']:
-                    log.msg("WRITE MAP FILE: found an illegal work type: ", s_id_info['work_type'], 'in document', s_id)
-                    continue
+            for collection_id, collection_items_info in mapfile_info.items():
+                # if s_id_info['work_type'] not in ['bakalářská práce','diplomová práce','dizertační práce','rigorózní práce']:
+                #     log.msg("WRITE MAP FILE: found an illegal work type: ", s_id_info['work_type'], 'in document', s_id)
+                #     continue
 
-                if s_id_info['dtl_id'] is not None:
-                    dtl_id = s_id_info['dtl_id']
-                else:
-                    dtl_id = ''
+                for item_info in collection_items_info['items_data']:
 
-                if s_id_info['aleph_sysno'] is not None:
-                    aleph_id = s_id_info['aleph_sysno']
-                else:
-                    aleph_id = ''
+                    if ('dtl_id' in item_info) and (item_info['dtl_id'] is not None):
+                        dtl_id = item_info['dtl_id']
+                    else:
+                        dtl_id = ''
 
-                if s_id_info['sis_id'] is not None:
-                    doc_did = s_id_info['sis_id']
-                else:
-                    doc_did = ''
+                    if ('aleph_sysno' in item_info) and (item_info['aleph_sysno'] is not None):
+                        # sysno is stored in a list -> probably because SOLR stores it in a 'multivalued' field
+                        aleph_id = item_info['aleph_sysno'][0]
+                    else:
+                        aleph_id = ''
 
-                if s_id_info['handle'] is not None:
-                    handle = s_id_info['handle']
-                else:
-                    handle = ''
+                    if ('sis_id' in item_info) and (item_info['sis_id'] is not None):
+                        doc_did = item_info['sis_id']
+                    else:
+                        doc_did = ''
 
-                # create string from values in s_id_info and write it to the mapfile
-                map_string = str(aleph_id) + separator + str(doc_did) + separator + str(dtl_id) + separator + str(handle)
+                    if ('handle' in item_info) and (item_info['handle'] is not None):
+                        handle = item_info['handle']
+                    else:
+                        handle = ''
 
-                try:
-                    file_handle.write(map_string + "\n")
-                except Exception as e:
-                    log.msg(e)
-                    raise Exception("Failed to write to DSpace mapfile.")
+                    # create string from values in s_id_info and write it to the mapfile
+                    map_string = str(aleph_id) + separator + str(doc_did) + separator + str(dtl_id) + separator + str(handle)
 
-        # TODO: Rewrite to get all theses from DSpace DB
-        # get all finished documents in DSpace
-        dspace_theses = self.db_dspace.execute("SELECT i.owning_collection, "
-                                               "h.handle, "
-                                               "(SELECT text_value AS sis_id FROM metadatavalue WHERE metadata_field_id=155 AND resource_id=m.resource_id GROUP BY text_value), "
-                                               "(SELECT text_value AS aleph_id FROM metadatavalue WHERE metadata_field_id=159 AND resource_id=m.resource_id GROUP BY text_value), "
-                                               "(SELECT text_value AS dtl_id FROM metadatavalue WHERE metadata_field_id=193 AND resource_id=m.resource_id GROUP BY text_value), "
-                                               "(SELECT text_value AS work_type FROM metadatavalue WHERE metadata_field_id=66 AND resource_id=m.resource_id GROUP BY text_value) "
-                                               "FROM item AS i, handle AS h, metadatavalue AS m "
-                                               "WHERE m.resource_id=h.resource_id AND "
-                                               "h.resource_type_id=2 AND "
-                                               "i.item_id=h.resource_id AND "
-                                               "i.owning_collection=("
-                                               "SELECT i.owning_collection "
-                                               "FROM item AS i "
-                                               "WHERE i.item_id=h.resource_id GROUP BY i.owning_collection) AND "
-                                               "(SELECT text_value AS work_type "
-                                               "FROM metadatavalue WHERE metadata_field_id=66 AND "
-                                               "resource_id=m.resource_id AND "
-                                               "text_lang='cs_CZ') "
-                                               "IN ('bakalářská práce','diplomová práce','dizertační práce','rigorózní práce') "
-                                               "GROUP BY h.handle, m.resource_id, i.owning_collection;")
+                    try:
+                        file_handle.write(map_string + "\n")
+                    except Exception as e:
+                        log.msg(e)
+                        raise Exception("Failed to write to DSpace mapfile.")
+    
+        mapfile_datadict = self.get_mapfile_data()    
+                        
+        log.msg("Collection items dict: ")
+        log.msg(json.dumps(mapfile_datadict, indent=4))
 
-        mapfile_info = dict()
-        for col, handle, sis_id, aleph_sysno, dtl_id, work_type in dspace_theses.fetchall():
-            mapfile_info[handle] = {'collection': col,
-                                    'handle': handle,
-                                    'sis_id': sis_id,
-                                    'aleph_sysno': aleph_sysno,
-                                    'dtl_id': dtl_id,
-                                    'work_type': work_type}
+        
         try:
             fh = create_file()
 
-            write_doc_map(fh, mapfile_info)
+            write_doc_map(fh, mapfile_datadict)
 
             fh.close()
         except Exception as e:
@@ -303,7 +328,7 @@ class workflow_batch(object):
         """
         if path is None:
             log.err('Cannot move batch map file.', 'Map file was not created.')
-            return True
+            raise Exception("move_mapfile(): 'path' is : " + path)
 
         is_remote = self.config.getboolean('aleph_mapfile_share', 'is_remote')
         file_name = os.path.basename(path)

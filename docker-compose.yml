@@ -34,4 +34,9 @@ services:
         # links:
         #     - db
         volumes: 
-            - ./balikator_core:/opt/data/balikator/balikator_core
+            - ./balikator_core:/opt/data/balikator/balikator_core # this has to be mounted inside the container
+            - ./test_data/balikator/sis_exports:/opt/data/balikator/sis_exports # this has to be mounted inside the container
+            - ./test_data/balikator/balikator_input:/opt/data/balikator/balikator_input # TEST ONLY! This can be container-only directory
+            - ./test_data/balikator/balikator_packages:/opt/data/balikator/balikator_packages # TEST ONLY! This can be container-only directory
+            - ./test_data/balikator/mapfiles:/opt/data/balikator/dspace_mapfiles # this has to be mounted inside the container
+            - /opt/dspace/bin:/opt/dspace/bin

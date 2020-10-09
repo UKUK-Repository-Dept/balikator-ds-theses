@@ -23,6 +23,7 @@ class dc_proto(meta_proto):
         # self._title_alternative_translated = None
         self._creator = self.get_creator()
         self._issue_date = self.get_date_issued()
+        self._embargoEndDate = self.get_date_embargoEnd()
         self._contributor_advisor = self.get_contributor_advisor()
         self._contributor_referee = self.get_contributor_referee()
         self._publisher = self.get_publisher()
@@ -175,6 +176,23 @@ class dc_proto(meta_proto):
             return result
         except:
             raise Exception('Failed to get document acceptance date from metadata')
+    
+    def get_date_embargoEnd(self):
+        log.msg("Getting document's emgargo end date...")
+
+        tag = 'date'
+        qualifier = 'embargoEndDate'
+
+        try:
+            result = list()
+            date_embargoEnd = super().get_data('ds_embargoEndDate')
+            if date_embargoEnd is None:
+                return None
+            
+            result.append(super().construct_meta_dict(data=date_embargoEnd, tag=tag, qualifier=qualifier, language=None))
+            return result
+        except:
+            raise Exception('Failed to get document\'s embargo end date from metadata')
 
     def get_contributor_advisor(self):
         log.msg("Getting document advisor...")

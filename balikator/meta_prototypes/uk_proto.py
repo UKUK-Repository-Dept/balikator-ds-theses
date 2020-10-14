@@ -28,6 +28,8 @@ class uk_proto(meta_proto):
         self._uk_file_availability = self.get_uk_file_availability()
         self._uk_publication_place = self.get_uk_publication_place()
         self._grantor = self.get_grantor()
+        self._uk_embargo_reason_cs = self.get_uk_embargo_reason(lang='cs')
+        self._uk_embargo_reason_en = self.get_uk_embargo_reason(lang='en')
         # self._uk_fac_abbr_en = self.get_uk_fac_abbr(lang='en') #FIXME: Get the english abbreviation from SIS
 
     def get_uk_theses_type(self):
@@ -372,3 +374,26 @@ class uk_proto(meta_proto):
             return result
         except:
             raise Exception('UK_PROTO - uk_file_availability():Failed to get document\'s availability from metadata')
+
+    def get_uk_embargo_reason(self, lang):
+        """
+        Get work's embargo reason if it has one.
+        This information should be available at 'ds_embargoReason_cs' & 'ds_embargoReason_en' field of the SIS export file
+        """
+        log.msg("Getting work's embargo reason (language: {})...".format(lang))
+        try:
+            result = list()
+            embargo_reason = None
+            tag = 'embargo'
+            qualifier = 'reason'
+            language = lang
+
+            embargo_reason = super().get_data('ds_embargoReason_' + str(language))
+
+            if embargo_reason is None:
+                return None
+            
+            result.append(super().construct_meta_dict(data=embargo_reason, tag=tag, qualifier=qualifier, language=language))
+            return result
+        except:
+            raise Exception('UK PROTO - get_uk_embargo_reason(): Failed to get document\'s embargo reason from metadata')

@@ -30,6 +30,8 @@ class uk_proto(meta_proto):
         self._grantor = self.get_grantor()
         self._uk_embargo_reason_cs = self.get_uk_embargo_reason(lang='cs')
         self._uk_embargo_reason_en = self.get_uk_embargo_reason(lang='en')
+        self._uk_defence_status_cs = self.get_uk_defence_status(lang='cs')
+        self._uk_defence_status_en = self.get_uk_defence_status(lang='en')
         # self._uk_fac_abbr_en = self.get_uk_fac_abbr(lang='en') #FIXME: Get the english abbreviation from SIS
 
     def get_uk_theses_type(self):
@@ -397,3 +399,25 @@ class uk_proto(meta_proto):
             return result
         except:
             raise Exception('UK PROTO - get_uk_embargo_reason(): Failed to get document\'s embargo reason from metadata')
+    
+    def get_uk_defence_status(self, lang):
+        """
+        Get defence status of a particular thesis. This information should be available in 'ds_defenceStatus_cs' & 'ds_defenceStatus_en' 
+        elements / fields of the SIS export file
+        """
+        log.msg("Getting work's defence status (language: {})...".format(lang))
+
+        try:
+            result = list()
+            defence_status = None
+            tag = 'thesis'
+            qualifier = 'defenceStatus'
+            language = lang
+
+            if defence_status is None:
+                return None
+            
+            result.append(super().construct_meta_dict(data=defence_status, tag=tag, qualifier=qualifier, language=language))
+            return result
+        except:
+            raise Exception('UK PROTO - get_uk_defence_status(): Failed to get document\'s defence status from metadata')

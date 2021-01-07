@@ -413,7 +413,7 @@ class uk_proto(meta_proto):
             qualifier = 'defenceStatus'
             language = None
 
-            defence_status = super.get_data('ds_defenceStatus')
+            defence_status = super().get_data('ds_defenceStatus')
 
             if defence_status is None:
                 return None

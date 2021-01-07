@@ -30,7 +30,7 @@ class uk_proto(meta_proto):
         self._grantor = self.get_grantor()
         self._uk_embargo_reason_cs = self.get_uk_embargo_reason(lang='cs')
         self._uk_embargo_reason_en = self.get_uk_embargo_reason(lang='en')
-        self._uk_defence_status_cs = self.get_uk_defence_status
+        self._uk_defence_status = self.get_uk_defence_status
         # self._uk_fac_abbr_en = self.get_uk_fac_abbr(lang='en') #FIXME: Get the english abbreviation from SIS
 
     def get_uk_theses_type(self):

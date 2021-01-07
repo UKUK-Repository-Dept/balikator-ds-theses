@@ -404,7 +404,7 @@ class uk_proto(meta_proto):
         Get defence status of a particular thesis. This information should be available in 'ds_defenceStatus_cs' & 'ds_defenceStatus_en' 
         elements / fields of the SIS export file
         """
-        log.msg("Getting work's defence status (language: {})...".format(lang))
+        log.msg("Getting work's defence status...")
 
         try:
             result = list()

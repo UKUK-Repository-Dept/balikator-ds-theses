@@ -31,7 +31,7 @@ class Field(Iterator):
     def __init__(self, tag, indicators=None, subfields=None, data=u''):
         self.controlfields_uk = ['func', 'FMT', 'repId', 'LDR', 'didId', 'ds_dateAccepted', 'ds_workType', 'ds_academicTitle', 'ds_facultyName_cs', 'ds_facultyName_en', 'ds_facultyAbbr', 'ds_finalGrade_cs', 'ds_finalGrade_en',
                                 'ds_studyLevel', 'ds_studyField_cs', 'ds_studyField_en', 'ds_studyProgram_cs', 'ds_studyProgram_en','ds_departmentName_cs', 'ds_departmentName_en', 'ds_keywords_cs', 'ds_keywords_en', 'ds_work_availability', 'ds_was_exported', 'ds_publication_place', 'ds_finalGrade_code',
-                                'ds_embargoStartDate', 'ds_embargoEndDate', 'ds_embargoReason_cs', 'ds_embargoReason_en', 'ds_defenceStatus']
+                                'ds_embargoStartDate', 'ds_embargoEndDate', 'ds_embargoReason_cs', 'ds_embargoReason_en', 'ds_defenceStatus', 'ds_departmentNameExternal_cs', 'ds_departmentNameExternal_en']
         if indicators == None:
             indicators = []
         if subfields == None:

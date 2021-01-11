@@ -31,6 +31,8 @@ class uk_proto(meta_proto):
         self._uk_embargo_reason_cs = self.get_uk_embargo_reason(lang='cs')
         self._uk_embargo_reason_en = self.get_uk_embargo_reason(lang='en')
         self._uk_defence_status = self.get_uk_defence_status()
+        self._uk_department_external_cs = self.get_uk_department_external(lang='cs')
+        self._uk_department_external_en = self.get_uk_department_external(lang='en')
         # self._uk_fac_abbr_en = self.get_uk_fac_abbr(lang='en') #FIXME: Get the english abbreviation from SIS
 
     def get_uk_theses_type(self):
@@ -422,3 +424,27 @@ class uk_proto(meta_proto):
             return result
         except:
             raise Exception('UK PROTO - get_uk_defence_status(): Failed to get document\'s defence status from metadata')
+
+    def get_uk_department_external(self, lang):
+        """
+        Get name of the external department where the work has been defended, if there is any.
+        """
+        log.msg("Getting work's external deparment...")
+
+        try:
+            result = list()
+            department_external = None
+            tag = 'departmentExternal'
+            qualifier = 'name'
+            language = lang
+
+            department_external = super().get_data('ds_departmentNameExternal_' + str(language))
+
+            if department_external is None:
+                return None
+            
+            result.append(super().construct_meta_dict(data=department_external, tag=tag, qualifier=qualifier, language=language))
+            return result
+
+        except:
+            raise Exception('UK PROTO - get_uk_department_external(): Failed to get work\'s external department')

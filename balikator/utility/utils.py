@@ -276,8 +276,11 @@ class utility(object):
         else:
             try:
                 shutil.rmtree(path)
-            except:
-                raise Exception('Failed to clean up local directory ' + path)
+            except Exception as e:
+                log.msg(e)
+                tb = traceback.format_exc()
+                log.msg(tb)
+                raise Exception(e)
 
     def move_folder(self, src, dst, is_remote, sftp_client=None):
 

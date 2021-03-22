@@ -273,7 +273,7 @@ class workflow_batch(object):
 
                 for item_info in collection_items_info['items_data']:
 
-                    if ('dtl_id' in item_info) and item_info['dtl_id'] is not None):
+                    if ('dtl_id' in item_info) and (item_info['dtl_id'] is not None):
                         dtl_id = item_info['dtl_id']
                     else:
                         dtl_id = ''

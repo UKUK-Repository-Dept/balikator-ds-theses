@@ -175,11 +175,8 @@ class workflow_batch(object):
                 log.msg('Failed to unimport document from local DSpace due to the unexpected error')
                 raise ex
     
-    def get_solr_data(self):
+    def get_mapfile_data(self):
 
-        query_url = self.config.get('index_discovery_query_config', 'solr_endpoint') + "/select?q="
-        return_format = 'json'
-        # TODO: Rewrite to get all theses from INDEX
         collection_items_dict = dict()
 
         # get items in collection identified by 'HANDLE ID' stored as a key in option_pair
@@ -197,6 +194,7 @@ class workflow_batch(object):
                     # get collection data from SOLR (json)
                 json_data = self.utility.get_solr_data( info_type="coll_items_info", 
                                                         collection_id=key_uuid,
+                                                        resource_type=self.config.getint('index_discovery_query_config', 'item_resourcetype'),
                                                         max_rows = self.config.getint('index_discovery_query_config', 'solr_maxrows'),
                                                         start_rows = start_rows)
 
@@ -221,7 +219,7 @@ class workflow_batch(object):
                     start_rows+= self.config.getint('index_discovery_query_config', 'solr_maxrows')
             
             # store list of all items in collection in a dict        
-            collection_items_dict[key] = {"items_count": hit_count, "items_data": collection_items_list}
+            collection_items_dict[key_uuid] = {"items_count": hit_count, "items_data": collection_items_list}
         
         return collection_items_dict
 

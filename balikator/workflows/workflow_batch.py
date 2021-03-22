@@ -275,16 +275,31 @@ class workflow_batch(object):
 
                     if ('dtl_id' in item_info) and (item_info['dtl_id'] is not None):
                         dtl_id = item_info['dtl_id']
+
+                        if len(dtl_id) > 1:
+                            raise Exception("DTL ID should be unique identifier, but DTL ID COUNT > 1")
+                        else:
+                            dtl_id = dtl_id[0]
                     else:
                         dtl_id = ''
 
                     if ('aleph_sysno' in item_info) and (item_info['aleph_sysno'] is not None):
                         aleph_id = item_info['aleph_sysno']
+
+                        if len(aleph_id) > 1:
+                            raise Exception("ALEPH SYSNO should be unique identifier, but ALEPH SYSNO COUNT > 1")
+                        else:
+                            aleph_id = aleph_id[0]
                     else:
                         aleph_id = ''
 
                     if ('sis_id' in item_info) and (item_info['sis_id'] is not None):
                         doc_did = item_info['sis_id']
+                        
+                        if len(doc_did) > 1:
+                            raise Exception("SIS DID should be unique identifier, but SIS DID COUNT > 1")
+                        else:
+                            doc_did = doc_did[0]
                     else:
                         doc_did = ''
 

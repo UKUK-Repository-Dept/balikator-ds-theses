@@ -201,7 +201,7 @@ class workflow_batch(object):
                     # get number of hits from collection data
                 hit_count = self.utility.process_solr_item_count(json_data) 
                 
-                log.msg ("Collection {}: {} - HIT COUNT: {}".format(key_uuid, value, hit_count))
+                log.msg("Collection {}: {} - HIT COUNT: {}".format(key_uuid, value, hit_count))
                 
                 # get needed information from solr response JSON (return a list)
                 processed_solr_data = self.utility.process_solr_item_data(json_data)
@@ -267,24 +267,36 @@ class workflow_batch(object):
                 raise Exception('Failed to write DSpace mapfile header.')
 
             for collection_id, collection_items_info in mapfile_info.items():
-                """ if s_id_info['work_type'] not in ['bakalářská práce','diplomová práce','dizertační práce','rigorózní práce']:
-                    log.msg("WRITE MAP FILE: found an illegal work type: ", s_id_info['work_type'], 'in document', s_id)
-                    continue """
 
                 for item_info in collection_items_info['items_data']:
 
                     if ('dtl_id' in item_info) and (item_info['dtl_id'] is not None):
                         dtl_id = item_info['dtl_id']
+
+                        if len(dtl_id) > 1:
+                            raise Exception("DTL ID should be unique identifier, but DTL ID COUNT > 1")
+                        else:
+                            dtl_id = dtl_id[0]
                     else:
                         dtl_id = ''
 
                     if ('aleph_sysno' in item_info) and (item_info['aleph_sysno'] is not None):
                         aleph_id = item_info['aleph_sysno']
+
+                        if len(aleph_id) > 1:
+                            raise Exception("ALEPH SYSNO should be unique identifier, but ALEPH SYSNO COUNT > 1")
+                        else:
+                            aleph_id = aleph_id[0]
                     else:
                         aleph_id = ''
 
                     if ('sis_id' in item_info) and (item_info['sis_id'] is not None):
                         doc_did = item_info['sis_id']
+                        
+                        if len(doc_did) > 1:
+                            raise Exception("SIS DID should be unique identifier, but SIS DID COUNT > 1")
+                        else:
+                            doc_did = doc_did[0]
                     else:
                         doc_did = ''
 
@@ -304,8 +316,8 @@ class workflow_batch(object):
 
         mapfile_datadict = self.get_mapfile_data()
 
-        log.msg("Collection items dict: ")
-        log.msg(json.dumps(mapfile_datadict, indent=4))
+        # log.msg("Collection items dict: ")
+        # log.msg(json.dumps(mapfile_datadict, indent=4))
 
         try:
             fh = create_file()

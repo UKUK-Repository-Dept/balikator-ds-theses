@@ -4,6 +4,7 @@
 import os
 import shutil
 import json
+import pyjq
 from twisted.python import log
 from datetime import datetime
 from subprocess import check_call, CalledProcessError
@@ -180,7 +181,7 @@ class workflow_batch(object):
         collection_items_dict = dict()
 
         # get items in collection identified by 'HANDLE ID' stored as a key in option_pair
-        for key, value in self.config.items('import_collections_map'):
+        for key_uuid, value in self.config.items('index_discovery_collections_map'):
 
             get_more_data = True
             gathered_docs = 0
@@ -193,14 +194,14 @@ class workflow_batch(object):
 
                     # get collection data from SOLR (json)
                 json_data = self.utility.get_solr_data( info_type="coll_items_info", 
-                                                        collection_id=key,
-                                                        max_rows = self.config.getint('dspace', 'solr_maxrows'),
+                                                        collection_id=key_uuid,
+                                                        max_rows = self.config.getint('index_discovery_query_config', 'solr_maxrows'),
                                                         start_rows = start_rows)
 
                     # get number of hits from collection data
                 hit_count = self.utility.process_solr_item_count(json_data) 
                 
-                log.msg ("Collection {}: {} - HIT COUNT: {}".format(key, value, hit_count))
+                log.msg ("Collection {}: {} - HIT COUNT: {}".format(key_uuid, value, hit_count))
                 
                 # get needed information from solr response JSON (return a list)
                 processed_solr_data = self.utility.process_solr_item_data(json_data)
@@ -215,7 +216,7 @@ class workflow_batch(object):
                 if gathered_docs == hit_count:
                     get_more_data = False
                 else:
-                    start_rows+= self.config.getint('dspace', 'solr_maxrows')
+                    start_rows+= self.config.getint('index_discovery_query_config', 'solr_maxrows')
             
             # store list of all items in collection in a dict        
             collection_items_dict[key] = {"items_count": hit_count, "items_data": collection_items_list}

@@ -187,7 +187,7 @@ class workflow_batch(object):
             start_rows = 0
             collection_items_list = list()
 
-            log.msg("Getting items in collection {}: {}".format(key, value))
+            log.msg("Getting items in collection {}: {}".format(key_uuid, value))
 
             while get_more_data is True:
 

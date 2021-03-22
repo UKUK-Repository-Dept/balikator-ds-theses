@@ -268,7 +268,7 @@ class dc_proto(meta_proto):
                 
                 role = field['4'] # get the role from the 700 field (subfield '4')
                 
-                if role == 'csl' # check if role is 'csl' -> thesis consultant
+                if role == 'csl': # check if role is 'csl' -> thesis consultant
                     name = field['a'] # get the name of consultant, create metadata prototype and add it to the list of all consultants
                     consultants.append(super().construct_meta_dict(data=name, tag='contributor', qualifier='consultant', language=None))
                 else:

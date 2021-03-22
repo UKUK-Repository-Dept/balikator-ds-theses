@@ -210,7 +210,7 @@ class workflow_batch(object):
                 collection_items_list.extend(processed_solr_data) 
                 gathered_docs += len(processed_solr_data)
 
-                log.msg("Collection {}: {} - PROCESSED DOCS: {}".format(key, value, gathered_docs))
+                log.msg("Collection {}: {} - PROCESSED DOCS: {}".format(key_uuid, value, gathered_docs))
 
                 # check if further processing is needed
                 if gathered_docs == hit_count:

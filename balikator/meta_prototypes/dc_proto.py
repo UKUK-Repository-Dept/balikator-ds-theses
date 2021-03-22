@@ -26,6 +26,7 @@ class dc_proto(meta_proto):
         self._embargoEndDate = self.get_date_embargoEnd()
         self._contributor_advisor = self.get_contributor_advisor()
         self._contributor_referee = self.get_contributor_referee()
+        self._contributor_consultant = self.get_contributor_consultant()
         self._publisher = self.get_publisher()
         self._subject_cs = self.get_keywords(lang='cs')
         self._subject_en = self.get_keywords(lang='en')
@@ -249,6 +250,37 @@ class dc_proto(meta_proto):
             return referees
         except:
             raise Exception('Failed to get document referee from metadata')
+    
+    def get_contributor_consultant(self):
+        log.msg("Getting thesis consultant...")
+        consultant = None
+
+        try:
+            consultants = list() # create empty list to hold metadata prototypes for consultants
+            consultant = super().get_fields('700') # get all 700 MARC fields from MARCxml record 
+
+            if consultant is None: # we didn't find and 700 fields in MARCxml record
+                return None
+            
+            for field in consultant: # we found at least one 700 MARC field in MARCxml record
+                if field is None:
+                    return None
+                
+                role = field['4'] # get the role from the 700 field (subfield '4')
+                
+                if role == 'csl' # check if role is 'csl' -> thesis consultant
+                    name = field['a'] # get the name of consultant, create metadata prototype and add it to the list of all consultants
+                    consultants.append(super().construct_meta_dict(data=name, tag='contributor', qualifier='consultant', language=None))
+                else:
+                    pass
+            
+            if len(consultants) == 0:
+                return None
+            
+            return consultants
+
+        except:
+            raise Exception("Failed to get thesis consultant from metadata")
 
     def get_publisher(self):
         log.msg("Getting document publisher...")

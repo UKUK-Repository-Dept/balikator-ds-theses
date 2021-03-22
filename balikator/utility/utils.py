@@ -341,3 +341,59 @@ class utility(object):
         img.alpha_channel = 'remove'
         img.save(filename=thmb_path)
         return thmb_path
+
+    def get_solr_data(self, info_type="collection_items", collection_id=None, resource_type=None, max_rows=None, start_rows=None):
+
+        query_url = self.config.get('index_discovery_query_config', 'solr_endpoint') + "/select?q="
+        return_format = 'json'
+        
+        if info_type == 'coll_items_info':
+            
+            if max_rows is None:
+                raise Exception("Excepiton at get_solr_data for mode 'coll_items_info': 'rows' param cannot be 'None'")
+
+            if start_rows is None:
+                raise Exception("Excepiton at get_solr_data for mode 'coll_items_info': 'start' param cannot be 'None'")
+
+            if resource_type is None:
+                raise Exception("Exception at get_solr_data for mode 'coll_items_info': resourcetype param cannot be 'None'")
+            
+            if collection_id is None:
+                raise Exception("Missing value of 'collection_id' param in 'get_solr_data()': value is: " + str(collection_id))
+
+            query_coll = "location.coll:" + str(collection_id) + "+AND+" + "search.resourcetype:" + str(resource_type)
+            
+            query_params = query_coll + "&rows=" + str(max_rows) + "&start=" + str(start_rows) + "&wt=" + return_format
+
+        else:
+            raise NotImplementedError("There no functionality implemented for 'info_type=" + info_type + "'")
+        
+        log.msg("Constructing SOLR query url...")        
+        query_url = query_url + query_params
+
+        log.msg(query_url)
+
+        try:
+            response = requests.get(query_url)
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            raise e
+    
+    def process_solr_item_data(self, json_data):
+        #TODO:  Get only relevant information from SOLR json:
+                #       - total count (just to check)
+                #       - handle
+                #       - repid
+                #       - alephID
+                #       - dtlID
+        
+        items_data = pyjq.all('.response.docs[] | {"handle": .\"handle\", "sis_id": \."dc.identifier.repId", "aleph_sysno": .\"dc.identifier.aleph\", "dtl_id": \."dc.identifier.dtl\"}', json_data)    
+        
+        return items_data
+    
+    def process_solr_item_count(self, json_data):
+        # get number of hits
+        num_found = pyjq.one('.response | {"numFound": .\"numFound\"}', json_data)
+
+        return num_found['numFound']

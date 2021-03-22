@@ -175,8 +175,10 @@ class workflow_batch(object):
                 log.msg('Failed to unimport document from local DSpace due to the unexpected error')
                 raise ex
     
-    def get_mapfile_data(self):
+    def get_solr_data(self):
 
+        query_url = self.config.get('index_discovery_query_config', 'solr_endpoint') + "/select?q="
+        return_format = 'json'
         # TODO: Rewrite to get all theses from INDEX
         collection_items_dict = dict()
 

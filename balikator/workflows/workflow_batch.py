@@ -201,7 +201,7 @@ class workflow_batch(object):
                     # get number of hits from collection data
                 hit_count = self.utility.process_solr_item_count(json_data) 
                 
-                log.msg ("Collection {}: {} - HIT COUNT: {}".format(key_uuid, value, hit_count))
+                log.msg("Collection {}: {} - HIT COUNT: {}".format(key_uuid, value, hit_count))
                 
                 # get needed information from solr response JSON (return a list)
                 processed_solr_data = self.utility.process_solr_item_data(json_data)
@@ -267,9 +267,6 @@ class workflow_batch(object):
                 raise Exception('Failed to write DSpace mapfile header.')
 
             for collection_id, collection_items_info in mapfile_info.items():
-                """ if s_id_info['work_type'] not in ['bakalářská práce','diplomová práce','dizertační práce','rigorózní práce']:
-                    log.msg("WRITE MAP FILE: found an illegal work type: ", s_id_info['work_type'], 'in document', s_id)
-                    continue """
 
                 for item_info in collection_items_info['items_data']:
 
@@ -319,8 +316,8 @@ class workflow_batch(object):
 
         mapfile_datadict = self.get_mapfile_data()
 
-        log.msg("Collection items dict: ")
-        log.msg(json.dumps(mapfile_datadict, indent=4))
+        # log.msg("Collection items dict: ")
+        # log.msg(json.dumps(mapfile_datadict, indent=4))
 
         try:
             fh = create_file()

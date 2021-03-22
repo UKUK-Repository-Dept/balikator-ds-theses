@@ -6,6 +6,7 @@ import os
 import shutil
 import traceback
 import re
+import requests
 from scp import SCPClient
 from twisted.python import log
 from stat import S_ISDIR

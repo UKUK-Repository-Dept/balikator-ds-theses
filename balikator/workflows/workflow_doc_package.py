@@ -260,7 +260,28 @@ class workflow_doc_package(object):
                     log.msg(e)
                     raise e
 
-        # FIXME: Check if new logic works with all kinds of file types (all kinds of FTYP values)
+        # TODO: Check if new logic works with all kinds of file types (all kinds of FTYP values)
+        # FIXME: New logic for censored files (should be currently applicable for the following files):
+        #   ftyp = "TX" or "DTX"
+        #   ftyp = "RT" or "DRT"
+        #   ftyp = "PR" or "DPR"
+        #
+        # New logic:
+        #
+        # for each file in d_dict (file stored in f_dict):
+        #   1. file has the same base ftyp (TX, RT, PR (including possible part/file number - eg. PR1, PR2, PR3))
+        #   
+        #       1.a.: stored file is censored, has ftyp that means a censored version of the file (the naming convention will be supplied by SIS administrator)
+        #           -> return None (nothing will be deleted from file_dict - file with the same base type is a censored file and thus only this file belongs to DSpace)
+        #       1.b.: stored file is NOT CENSORED 
+        #           -> 1.b.1: current file has ftyp starting with 'D', meaning it is newer and thus takes belongs to DSpace instead of the previous file
+        #                     e.g.: current file has ftyp = "DTX", stored file is "TX", this "DTX" takes precendence and only this file belongs to DSpace, 
+        #                     previously processed "TX" file needs to be deleted from f_dict
+        #               -> return stored file's FID (stored file should be deleted from f_dict, because currently processed file is newer than stored file and this stored file doesn't belong to DSpace)
+        #           -> 1.b.2 current file DOES NOT HAVE ftyp starting with 'D' (meaning that stored file should not be deleted, as the currently processed file is older than the stored file and thus doesn't belong to DSpace)
+        #               -> return None (stored file should not be deleted as the currently processed file is older the the one stored in f_dict)
+        #   2. file doesn't have the same base ftyp
+        #       2.a: continue to next file in f_dict
         def old_file_version_stored(file_obj, f_dict):
 
             current_orig_ftyp = str(file_obj.ftyp).lstrip('D')

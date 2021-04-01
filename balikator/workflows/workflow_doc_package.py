@@ -212,7 +212,7 @@ class workflow_doc_package(object):
         :param doc: document object
         :return: string('contents_file') - finished process identification
         """
-
+            
         def file_availability_check():
 
             work_availability_conf_list = self.config.options('work_availability_map')
@@ -260,6 +260,73 @@ class workflow_doc_package(object):
                     log.msg(e)
                     raise e
 
+        def perform_regex_match(ftyp):
+
+            file_ftyp_data = dict()
+            ftyp_regex = re.compile("^([D]{0,1})(\w{2}\d{0,2})([C]{0,1})(\d{0,2})$")
+
+            ftyp_prefix = ftyp_regex.match(file_obj.ftyp).group(1)
+            ftyp_base = ftyp_regex.match(file_obj.ftyp).group(2)
+            ftyp_censor_suffix = ftype_regex.match(file_obj.ftyp).group(3)
+            ftyp_numbering_extension = ftype_regex.match(file_obj.ftyp).group(4)
+            
+            # just a sanity check below, I guess...
+            # if current file has a 'censorship' suffix present
+            if ftyp_censor_suffix is not None:
+                # censored file should not have a numbering extenson, e.g. the should not be a file with ftyp = DPRC2 or ftyp = DRPC3, ...
+                if ftyp_numbering_extension is not None:
+                    raise Exception("workflow_doc_package(): censored file should not have a numbering extension")
+                
+                # censored file should always have a PREFIX = 'D', if it doesn't, throw an exception
+                if ftyp_prefix is None:
+                    raise Exception("workflow_doc_package(): censored file should have a 'D' prexix")
+            
+            file_ftyp_data.update(
+                {
+                    'prefix' : ftyp_prefix,
+                    'base' : ftyp_base,
+                    'censor_suffix' : ftyp_censor_suffix,
+                    'numbering_extension': ftyp_numbering_extension
+                }
+            )
+            return file_ftyp_data
+
+        def perform_old_file_evaluation(current_ftyp_data, stored_ftyp_data):
+
+            if current_ftyp_data['base'] == stored_ftyp_data['base']:
+                # STORED file DOES HAVE A CENSOR SUFFIX -> WE ALREADY HAVE THE RIGH FILE'S INFORMATION STORED
+                if stored_ftyp_data['censor_suffix'] is not None:
+                    return False
+                # STORED file DOESN'T HAVE A CENSOR SUFFIX, THERE'S A POSSIBILITY, THAT WE ARE CURRENTLY PROCESSING NEWER FILE
+                # THAT BELONGS TO DSPACE INSTEAD OF THE ONE ALREADY STORED IN f_dict file information dictionary
+                else:
+                    # in case that current file has a 'D' prefix and stored file has a 'D' prefix, throw an exception,
+                    # THIS SHOULD NEVER HAPPEN!
+                    if (current_ftyp_data['prefix'] is not None) and (stored_ftyp_data['prefix'] is not None):
+                        log.err("workflow_doc_package(): processed file has a 'D' prefix, stored file has a 'D' prefix. THIS SHOULD NEVER HAPPEN")
+                        raise Exception("workflow_doc_package(): processed file has a 'D' prefix, stored file has a 'D' prefix")
+                    
+                    # in case that current file doesn't have a 'D' prefix and stored file doesn't have a 'D' prefix, throw an Exception
+                    # THIS SHOULD NEVER HAPPEN!
+                    if (current_ftyp_data['prefix'] is None) and (stored_ftyp_data['prefix'] is None):
+                        log.err("workflow_doc_package(): processed file doesn't have a 'D' prefix, stored file doesn't have a 'D' prefix. THIS SHOULD NEVER HAPPEN")
+                        raise Exception("workflow_doc_package(): processed file doesn't have a 'D' prefix, stored file doesn't have a 'D' prefix")
+                
+                    # THIS IS PERFECTLY OK, CURRENTLY PROCESSED FILE HAS A 'D' PREFIX, MEANING IT IS NEWER THAN STORED FILE AND BELONGS TO DSPACE
+                    if (current_ftyp_data['prefix'] is not None) and (stored_ftyp_data['prefix'] is None):
+                        # by something else than None, we ensure that stored file will be deleted from file information dictionary 
+                        # f_dict later on
+                        return True
+
+                    # THIS IS PERFECTLY OK, CURRENTLY PROCESSED FILE DOESN'T HAVE 'D' PREFIX, MEANING IT IS YOUNGER THAN ALREADY STORED
+                    # FILE. THUS, STORED FILE BELONGS TO DSPACE AND CURRENTLY PROCESSED FILE DOES NOT
+                    if (current_ftyp_data['prefix'] is None) and (stored_ftyp_data['prefix'] is not None):
+                        return False
+            else:
+                # ftyp values are not matching, it's not the same type of file
+                return False
+
+
         # TODO: Check if new logic works with all kinds of file types (all kinds of FTYP values)
         # FIXME: New logic for censored files (should be currently applicable for the following files):
         #   ftyp = "TX" or "DTX"
@@ -284,7 +351,58 @@ class workflow_doc_package(object):
         #       2.a: continue to next file in f_dict
         def old_file_version_stored(file_obj, f_dict):
 
-            current_orig_ftyp = str(file_obj.ftyp).lstrip('D')
+
+            current_file_ftyp_data =  perform_regex_match(file_obj.ftyp)
+            
+            for key, inner_dict in f_dict.items():
+                # get complete stoted ftyp from file info dictionary
+                stored_ftyp = str(inner_dict['ftyp'])
+                # match stored ftyp from file info dictionary against ftyp regex 
+                stored_file_ftyp_data  = perform_regex_match(stored_ftyp)
+                
+                old_file_stored = perform_old_file_evaluation(current_file_ftyp_data, stored_file_ftyp_data)
+
+                if old_file_stored is True:
+                    # action is Not none, meaining that old file verion
+                    return inner_dict['fid']
+                else:
+                    return None
+
+                # # check if current_base_ftyp and stored_base_ftyp are the same
+                # if current_base_ftyp == stored_base_ftyp:
+                #     # STORED file DOES HAVE A CENSOR SUFFIX -> WE ALREADY HAVE THE RIGH FILE'S INFORMATION STORED
+                #     if stored_censor_suffix is not None:
+                #         return None
+                #     # STORED file DOESN'T HAVE A CENSOR SUFFIX, THERE'S A POSSIBILITY, THAT WE ARE CURRENTLY PROCESSING NEWER FILE
+                #     # THAT BELONGS TO DSPACE INSTEAD OF THE ONE ALREADY STORED IN f_dict file information dictionary
+                #     else:
+                #         # in case that current file has a 'D' prefix and stored file has a 'D' prefix, throw an exception,
+                #         # THIS SHOULD NEVER HAPPEN!
+                #         if (current_prefix is not None) and (stored_prexif is not None):
+                #             log.err("workflow_doc_package(): processed file has a 'D' prefix, stored file has a 'D' prefix. THIS SHOULD NEVER HAPPEN")
+                #             raise Exception("workflow_doc_package(): processed file has a 'D' prefix, stored file has a 'D' prefix")
+                        
+                #         # in case that current file doesn't have a 'D' prefix and stored file doesn't have a 'D' prefix, throw an Exception
+                #         # THIS SHOULD NEVER HAPPEN!
+                #         if (current_prefix is None) and (stored_prefix is None):
+                #             log.err("workflow_doc_package(): processed file doesn't have a 'D' prefix, stored file doesn't have a 'D' prefix. THIS SHOULD NEVER HAPPEN")
+                #             raise Exception("workflow_doc_package(): processed file doesn't have a 'D' prefix, stored file doesn't have a 'D' prefix")
+                  
+                #         # THIS IS PERFECTLY OK, CURRENTLY PROCESSED FILE HAS A 'D' PREFIX, MEANING IT IS NEWER THAN STORED FILE AND BELONGS TO DSPACE
+                #         if (current_prefix is not None) and (stored_prefix is None):
+                #             # by returning the stored file's FID, we ensure that this file will be deleted from file information dictionary 
+                #             # f_dict later on
+                #             return inner_dict['fid']
+
+                #         # THIS IS PERFECTLY OK, CURRENTLY PROCESSED FILE DOESN'T HAVE 'D' PREFIX, MEANING IT IS YOUNGER THAN ALREADY STORED
+                #         # FILE. THUS, STORED FILE BELONGS TO DSPACE AND CURRENTLY PROCESSED FILE DOES NOT
+                #         if (current_prefix is None) and (stored_prexi is not None):
+                #             return None
+                # else:
+                #     # ftyp values are not matching, it's not the same type of file
+                #     return None
+
+        """ current_orig_ftyp = str(file_obj.ftyp).lstrip('D')
 
             for key, inner_dict in f_dict.items():
                 stored_orig_ftyp = str(inner_dict['ftyp']).lstrip('D')
@@ -308,7 +426,7 @@ class workflow_doc_package(object):
                     # ftyp values are not matching, it's not the same type of file
                     log.msg("CURRENT FTYP: ", file_obj.ftyp)
                     log.msg("STORED FTYP: ", inner_dict['ftyp'])
-                    return None
+                    return None """
 
         try:
 

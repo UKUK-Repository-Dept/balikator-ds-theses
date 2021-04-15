@@ -265,10 +265,10 @@ class workflow_doc_package(object):
             file_ftyp_data = dict()
             ftyp_regex = re.compile("^([D]{0,1})(\w{2}\d{0,2})([C]{0,1})(\d{0,2})$")
 
-            ftyp_prefix = ftyp_regex.match(file_obj.ftyp).group(1)
-            ftyp_base = ftyp_regex.match(file_obj.ftyp).group(2)
-            ftyp_censor_suffix = ftype_regex.match(file_obj.ftyp).group(3)
-            ftyp_numbering_extension = ftype_regex.match(file_obj.ftyp).group(4)
+            ftyp_prefix = ftyp_regex.match(ftyp).group(1)
+            ftyp_base = ftyp_regex.match(ftyp).group(2)
+            ftyp_censor_suffix = ftype_regex.match(ftyp).group(3)
+            ftyp_numbering_extension = ftype_regex.match(ftyp).group(4)
             
             # just a sanity check below, I guess...
             # if current file has a 'censorship' suffix present

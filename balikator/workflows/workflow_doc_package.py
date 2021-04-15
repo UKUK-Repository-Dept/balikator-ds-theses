@@ -264,7 +264,7 @@ class workflow_doc_package(object):
 
             log.msg("REGEX MATCH GOT THIS FTYP: {}".format(ftyp))
             file_ftyp_data = dict()
-            ftyp_regex = re.compile("^([D]{0,1})(\w{2}\d{0,2})([C]{0,1})(\d{0,2})$")
+            ftyp_regex = re.compile("^([D]{0,1})(\w{2,3}\d{0,2})([C]{0,1})(\d{0,2})$")
 
             #ftyp_prefix = ftyp_regex.match(ftyp).group(1)
             #ftyp_base = ftyp_regex.match(ftyp).group(2)

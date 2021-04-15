@@ -377,7 +377,9 @@ class workflow_doc_package(object):
                     # action is Not none, meaining that old file verion
                     return inner_dict['fid']
                 else:
-                    return None
+                    continue
+            
+            return None
 
                 # # check if current_base_ftyp and stored_base_ftyp are the same
                 # if current_base_ftyp == stored_base_ftyp:

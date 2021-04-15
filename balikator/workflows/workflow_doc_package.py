@@ -262,6 +262,7 @@ class workflow_doc_package(object):
 
         def perform_regex_match(ftyp):
 
+            log.msg("REGEX MATCH GOT THIS FTYP: {}".format(ftyp))
             file_ftyp_data = dict()
             ftyp_regex = re.compile("^([D]{0,1})(\w{2}\d{0,2})([C]{0,1})(\d{0,2})$")
 
@@ -360,13 +361,14 @@ class workflow_doc_package(object):
         #       2.a: continue to next file in f_dict
         def old_file_version_stored(file_obj, f_dict):
 
-
+            log.msg("Performing REGEX MATCH ON CURRENT FTYP: {}".format(file_obj.ftyp))
             current_file_ftyp_data =  perform_regex_match(file_obj.ftyp)
             
             for key, inner_dict in f_dict.items():
                 # get complete stoted ftyp from file info dictionary
                 stored_ftyp = str(inner_dict['ftyp'])
                 # match stored ftyp from file info dictionary against ftyp regex 
+                log.msg("Performing REGEX MATCH ON STORED FTYP: {}".format(stored_ftyp))
                 stored_file_ftyp_data  = perform_regex_match(stored_ftyp)
                 
                 old_file_stored = perform_old_file_evaluation(current_file_ftyp_data, stored_file_ftyp_data)

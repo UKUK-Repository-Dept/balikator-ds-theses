@@ -265,11 +265,16 @@ class workflow_doc_package(object):
             file_ftyp_data = dict()
             ftyp_regex = re.compile("^([D]{0,1})(\w{2}\d{0,2})([C]{0,1})(\d{0,2})$")
 
-            ftyp_prefix = ftyp_regex.match(ftyp).group(1)
-            ftyp_base = ftyp_regex.match(ftyp).group(2)
-            ftyp_censor_suffix = ftyp_regex.match(ftyp).group(3)
-            ftyp_numbering_extension = ftyp_regex.match(ftyp).group(4)
+            #ftyp_prefix = ftyp_regex.match(ftyp).group(1)
+            #ftyp_base = ftyp_regex.match(ftyp).group(2)
+            #ftyp_censor_suffix = ftyp_regex.match(ftyp).group(3)
+            #ftyp_numbering_extension = ftyp_regex.match(ftyp).group(4)
             
+            ftyp_prefix = None if ftyp_regex.match(ftyp).group(1) == '' else ftyp_regex.match(ftyp).group(1)
+            ftyp_base = None if ftyp_regex.match(ftyp).group(2) == '' else ftyp_regex.match(ftyp).group(2)
+            ftyp_censor_suffix = None if ftyp_regex.match(ftyp).group(3) == '' else ftyp_regex.match(ftyp).group(3)
+            ftyp_numbering_extension = None if ftyp_regex.match(ftyp).group(4) == '' else ftyp_regex.match(ftyp).group(4)
+
             log.msg("FTYP PREFIX: {}".format(ftyp_prefix))
             log.msg("FTYP BASE: {}".format(ftyp_base))
             log.msg("FTYP CENSOR SUFFIX: {}".format(ftyp_censor_suffix))

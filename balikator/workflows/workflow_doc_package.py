@@ -267,8 +267,8 @@ class workflow_doc_package(object):
 
             ftyp_prefix = ftyp_regex.match(ftyp).group(1)
             ftyp_base = ftyp_regex.match(ftyp).group(2)
-            ftyp_censor_suffix = ftype_regex.match(ftyp).group(3)
-            ftyp_numbering_extension = ftype_regex.match(ftyp).group(4)
+            ftyp_censor_suffix = ftyp_regex.match(ftyp).group(3)
+            ftyp_numbering_extension = ftyp_regex.match(ftyp).group(4)
             
             # just a sanity check below, I guess...
             # if current file has a 'censorship' suffix present

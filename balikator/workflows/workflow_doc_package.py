@@ -270,6 +270,10 @@ class workflow_doc_package(object):
             ftyp_censor_suffix = ftyp_regex.match(ftyp).group(3)
             ftyp_numbering_extension = ftyp_regex.match(ftyp).group(4)
             
+            log.msg("FTYP PREFIX: {}".format(ftyp_prefix))
+            log.msg("FTYP BASE: {}".format(ftyp_base))
+            log.msg("FTYP CENSOR SUFFIX: {}".format(ftyp_censor_suffix))
+            log.msg("FTYP NUMBERING EXTENSION: {}".format(ftyp_numbering_extension))
             # just a sanity check below, I guess...
             # if current file has a 'censorship' suffix present
             if ftyp_censor_suffix is not None:

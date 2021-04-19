@@ -840,7 +840,7 @@ class workflow_doc_package(object):
             # get file location
             for f_name, f_info in doc.work_files.items():
                 log.msg("TYP SOUBORU (FTYP): ", f_info['ftyp'])
-                if f_info['ftyp'] == 'TX' or f_info['ftyp'] == 'DTX':
+                if f_info['ftyp'] == 'TX' or f_info['translated_ftyp'] == 'TX':
                     # we found text of the work, get it's location
                     text_loc = f_info['local_renamed_file']
                     if os.path.exists(text_loc):

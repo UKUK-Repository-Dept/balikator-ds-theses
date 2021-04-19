@@ -481,9 +481,10 @@ class workflow_doc_package(object):
             
             for file in files_doc:
                 log.msg("workflow_doc_package - get_files_information(): Processing file FID = {}\tFTYP = {}".format(file.fid, file.ftyp))
-                translated_ftyp = get_translated_ftyp(file)
 
                 if file.farchivni is None:  # get information only about active files in storage (farchivni == None(NULL))
+                    
+                    translated_ftyp = get_translated_ftyp(file)
                     log.msg("workflow_doc_package - get_files_information(): FILE IS NOT FARCHIVNI: File FID = {}\tFTYP = {}: FARCHIVNI = {}".format(file.fid, file.ftyp, file.farchivni))
                     
                     orig_f_path = self.get_file_location(fid=file.fid)
@@ -498,6 +499,21 @@ class workflow_doc_package(object):
                     if translated_ftyp in forbidden_files:
                         log.msg("workflow_doc_package - get_files_information(): FILE IS FORBIDDEN: File FID = {}\tFTYP = {}: FARCHIVNI = {}".format(file.fid, file.ftyp, file.farchivni))
                         file_forbidden = True
+                    
+                    log.msg("Storing file information in f_info dict...")
+
+                    f_info.update({
+                        file.fid: {
+                            'did': file.did,
+                            'ftyp': file.ftyp,
+                            'translated_ftyp': translated_ftyp,
+                            'fnazev': file.fnazev,
+                            'fforbidden': file_forbidden,
+                            'orig_file': orig_f_path,
+                            'meta_file': meta_f_path,
+                            'fid': file.fid,
+                        }
+                    })
 
                     log.msg("workflow_doc_package - get_files_information(): Checking if older version is stored - File FID = {}\tFTYP = {}".format(file.fid, file.ftyp))
                     old_version_fid = old_file_version_stored(file, f_info)
@@ -517,25 +533,10 @@ class workflow_doc_package(object):
                             log.msg("FILE FID: ", file.fid)
                             log.msg("CURRENTLY PROCESSED FILE FTYP: ", file.ftyp)
                             log.msg("No older version of the file stored in the file info dict...")
-                            pass
+                            
                     except:
                         raise
 
-                    # construct path to storage folder
-                    # FIXED: fnazev is not unique identifier! Results in rewriting values of the f_info dictionary!
-                    # FIX: file.fid is used as unique identifier
-                    f_info.update({
-                        file.fid: {
-                            'did': file.did,
-                            'ftyp': file.ftyp,
-                            'translated_ftyp': translated_ftyp,
-                            'fnazev': file.fnazev,
-                            'fforbidden': file_forbidden,
-                            'orig_file': orig_f_path,
-                            'meta_file': meta_f_path,
-                            'fid': file.fid,
-                        }
-                    })
                 else:
                     log.msg("workflow_doc_package - get_files_information(): FILE IS FARCHIVNI: File FID = {}\tFTYP = {}: FARCHIVNI = {}".format(file.fid, file.ftyp, file.farchivni))
                     continue

@@ -260,7 +260,7 @@ class workflow_doc_package(object):
                     log.msg(e)
                     raise e
 
-        def perform_regex_match(ftyp):
+        def perform_regex_match(fid, ftyp):
 
             log.msg("REGEX MATCH GOT THIS FTYP: {}".format(ftyp))
             file_ftyp_data = dict()
@@ -294,6 +294,7 @@ class workflow_doc_package(object):
             
             file_ftyp_data.update(
                 {
+                    'fid': fid,
                     'prefix' : ftyp_prefix,
                     'base' : ftyp_base,
                     'censor_suffix' : ftyp_censor_suffix,
@@ -314,13 +315,13 @@ class workflow_doc_package(object):
                     log.msg("CENSOR SUFFIX FOUND IN CURRENT FILE!")
                     log.msg("CURRENT FILE HAS A PRECEDENCE OVER STORED FILE, stored file should removed from file information dict...")
                     
-                    return True
+                    return stored_ftyp_data['fid']
                 
                 if stored_ftyp_data['censor_suffix'] is not None:
                     log.msg("CENSOR SUFFIX FOUND IN STORED FILE!")
-                    log.msg("STORED FILE HAS A PRECEDENCE OVER STORED FILE, stored file should removed from file information dict...")
+                    log.msg("STORED FILE HAS A PRECEDENCE OVER STORED FILE, current file should removed from file information dict...")
                     
-                    return False
+                    return current_ftyp_data['fid']
                 
                 # WE DIDN'T FIND A CENSOR SUFFIX IN CURRENT NOR IN STORED FILE, SO WE SHOULD EVALUATE THESE FILES
                 # BASED ON THE OLD LOGIC - FILE WITH 'D' PREFIX TAKES PRECEDENCE OVER FILE WITHOUT 'D' PREFIX
@@ -343,18 +344,18 @@ class workflow_doc_package(object):
                     log.msg("CURRENT FILE HAS A PRECEDENCE OVER STORED FILE, stored file should be removed from file information dict...")
                     # by something else than None, we ensure that stored file will be deleted from file information dictionary 
                     # f_dict later on
-                    return True
+                    return stored_ftyp_data['fid']
 
                 # THIS IS PERFECTLY OK, CURRENTLY PROCESSED FILE DOESN'T HAVE 'D' PREFIX, MEANING IT IS YOUNGER THAN ALREADY STORED
                 # FILE. THUS, STORED FILE BELONGS TO DSPACE AND CURRENTLY PROCESSED FILE DOES NOT
                 if (current_ftyp_data['prefix'] is None) and (stored_ftyp_data['prefix'] is not None):
                     log.msg("'D' PREFIX FOUND IN THE STORED FILE, 'D' PREFIX NOT FOUND IN CURRENT FILE, ")
                     log.msg("STORED FILE HAS A PRECEDENCE OVER STORED FILE, stored file should be removed from file information dict...")
-                    return False
+                    return current_ftyp_data['fid']
             else:
                 # ftyp values are not matching, it's not the same type of file
                 log.msg("FTYP VALUES NOT MATCHING!")
-                return False
+                return None
 
 
         # TODO: Check if new logic works with all kinds of file types (all kinds of FTYP values)
@@ -382,25 +383,26 @@ class workflow_doc_package(object):
         def old_file_version_stored(file_obj, f_dict):
 
             log.msg("workflow_doc_package - old_file_version_stored(): Checking if older file is stored in f_dict: FID = {}\tFTYP = {}".format(file_obj.fid, file_obj.ftyp))
-            current_file_ftyp_data =  perform_regex_match(file_obj.ftyp)
+            current_file_ftyp_data =  perform_regex_match(file_obj.fid, file_obj.ftyp)
             
             for key, inner_dict in f_dict.items():
                 # get complete stoted ftyp from file info dictionary
                 stored_ftyp = str(inner_dict['ftyp'])
+                stored_fid = inner_dict['fid']
                 # match stored ftyp from file info dictionary against ftyp regex 
                 log.msg("Performing REGEX MATCH ON STORED FTYP: {}".format(stored_ftyp))
-                stored_file_ftyp_data  = perform_regex_match(stored_ftyp)
+                stored_file_ftyp_data  = perform_regex_match(stored_fid, stored_ftyp)
                 
                 log.msg("Performing old file evaluation on two files with the following information:")
                 log.msg("CURRENTLY PROCESSED FILE:")
                 log.msg(json.dumps(current_file_ftyp_data))
                 log.msg("STORED FILE")
                 log.msg(json.dumps(stored_file_ftyp_data))
-                old_file_stored = perform_old_file_evaluation(current_file_ftyp_data, stored_file_ftyp_data)
+                file_to_remove = perform_old_file_evaluation(current_file_ftyp_data, stored_file_ftyp_data)
 
-                if old_file_stored is True:
+                if old_file_stored is not None:
                     # we found an older file version, we will return fid of the file that should be removed from fileinfo dictionary (file won't be stored in DSpace)
-                    return inner_dict['fid']
+                    return file_to_remove
                 else:
                     continue
             
@@ -494,7 +496,7 @@ class workflow_doc_package(object):
                     })
 
                     log.msg("workflow_doc_package - get_files_information(): Checking if older version is stored - File FID = {}\tFTYP = {}".format(file.fid, file.ftyp))
-                    old_version_fid = old_file_version_stored(file, f_info)
+                    fid_to_remove = old_file_version_stored(file, f_info)
 
                     log.msg("File: {}\tOld version stored: {}".format(file.fnazev, old_version_fid))
                     # check if old version of a file is stored in f_info dict,
@@ -502,11 +504,11 @@ class workflow_doc_package(object):
                     # stored in dict but with ftyp not beginning with 'D', remove the currently stored file
                     # and store currently processed file
                     try:
-                        if old_version_fid is not None:
+                        if fid_to_remove is not None:
                             log.msg("FILE FID: ", file.fid)
                             log.msg("CURRENTLY PROCESSED FILE FTYP: ", file.ftyp)
                             log.msg("Found old version of the file store in file info dict, deleting old version info.")
-                            f_info.pop(old_version_fid)
+                            f_info.pop(fid_to_remove)
                         else:
                             log.msg("FILE FID: ", file.fid)
                             log.msg("CURRENTLY PROCESSED FILE FTYP: ", file.ftyp)

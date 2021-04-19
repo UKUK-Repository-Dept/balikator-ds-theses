@@ -408,7 +408,7 @@ class workflow_doc_package(object):
                     log.msg("Skipping evaluation of file FID = {} FTYP = {}: It doesn't make sense evaluate it against itself...".format(
                         current_file_ftyp_data['fid'],stored_fid))
                     continue
-                
+
                 file_to_remove = perform_old_file_evaluation(current_file_ftyp_data, stored_file_ftyp_data)
 
                 if file_to_remove is not None:
@@ -518,7 +518,7 @@ class workflow_doc_package(object):
                         if fid_to_remove is not None:
                             log.msg("Found old version of the file STORED in file info dict. Deleting old file info.")
                             log.msg("CURRENT FILE:\tFID = {} FTYP = {}".format(file.fid, file.ftyp))
-                            log.msg("STORED FILE:\tFID = {}".format(fid_to_remove))
+                            log.msg("FILE TO REMOVE:\tFID = {}".format(fid_to_remove))
                             f_info.pop(fid_to_remove)
                         else:
                             log.msg("CURRENT FILE:\tFID = {} FTYP = {}".format(file.fid, file.ftyp))

@@ -407,7 +407,7 @@ class workflow_doc_package(object):
                 log.msg(json.dumps(stored_file_ftyp_data))
                 file_to_remove = perform_old_file_evaluation(current_file_ftyp_data, stored_file_ftyp_data)
 
-                if old_file_stored is not None:
+                if file_to_remove is not None:
                     # we found an older file version, we will return fid of the file that should be removed from fileinfo dictionary (file won't be stored in DSpace)
                     return file_to_remove
                 else:

@@ -309,38 +309,48 @@ class workflow_doc_package(object):
             if current_ftyp_data['base'] == stored_ftyp_data['base']:
                 # STORED file DOES HAVE A CENSOR SUFFIX -> WE ALREADY HAVE THE RIGH FILE'S INFORMATION STORED
                 log.msg("Found matching FTYP bases!")
-                log.msg("Checking if STORED FILE HAS A CENSOR SUFFIX...")
+                log.msg("Checking if CURRENT FILE HAS A CENSOR SUFFIX...")
+                if current_ftyp_data['censor_suffix'] is not None:
+                    log.msg("CENSOR SUFFIX FOUND IN CURRENT FILE!")
+                    log.msg("CURRENT FILE HAS A PRECEDENCE OVER STORED FILE, stored file should removed from file information dict...")
+                    
+                    return True
+                
                 if stored_ftyp_data['censor_suffix'] is not None:
                     log.msg("CENSOR SUFFIX FOUND IN STORED FILE!")
-                    return False
-                # STORED file DOESN'T HAVE A CENSOR SUFFIX, THERE'S A POSSIBILITY, THAT WE ARE CURRENTLY PROCESSING NEWER FILE
-                # THAT BELONGS TO DSPACE INSTEAD OF THE ONE ALREADY STORED IN f_dict file information dictionary
-                else:
-                    log.msg("CENSOR SUFFIX NOT FOUND IN STORED FILE!")
-                    # in case that current file has a 'D' prefix and stored file has a 'D' prefix, throw an exception,
-                    # THIS SHOULD NEVER HAPPEN!
-                    if (current_ftyp_data['prefix'] is not None) and (stored_ftyp_data['prefix'] is not None):
-                        log.err("workflow_doc_package(): processed file has a 'D' prefix, stored file has a 'D' prefix. THIS SHOULD NEVER HAPPEN")
-                        raise Exception("workflow_doc_package(): processed file has a 'D' prefix, stored file has a 'D' prefix")
+                    log.msg("STORED FILE HAS A PRECEDENCE OVER STORED FILE, stored file should removed from file information dict...")
                     
-                    # in case that current file doesn't have a 'D' prefix and stored file doesn't have a 'D' prefix, throw an Exception
-                    # THIS SHOULD NEVER HAPPEN!
-                    if (current_ftyp_data['prefix'] is None) and (stored_ftyp_data['prefix'] is None):
-                        log.err("workflow_doc_package(): processed file doesn't have a 'D' prefix, stored file doesn't have a 'D' prefix. THIS SHOULD NEVER HAPPEN")
-                        raise Exception("workflow_doc_package(): processed file doesn't have a 'D' prefix, stored file doesn't have a 'D' prefix")
+                    return False
                 
-                    # THIS IS PERFECTLY OK, CURRENTLY PROCESSED FILE HAS A 'D' PREFIX, MEANING IT IS NEWER THAN STORED FILE AND BELONGS TO DSPACE
-                    if (current_ftyp_data['prefix'] is not None) and (stored_ftyp_data['prefix'] is None):
-                        log.msg("CENSOR SUFFIX FOUND IN CURRENT FILE!")
-                        # by something else than None, we ensure that stored file will be deleted from file information dictionary 
-                        # f_dict later on
-                        return True
+                # WE DIDN'T FIND A CENSOR SUFFIX IN CURRENT NOR IN STORED FILE, SO WE SHOULD EVALUATE THESE FILES
+                # BASED ON THE OLD LOGIC - FILE WITH 'D' PREFIX TAKES PRECEDENCE OVER FILE WITHOUT 'D' PREFIX
 
-                    # THIS IS PERFECTLY OK, CURRENTLY PROCESSED FILE DOESN'T HAVE 'D' PREFIX, MEANING IT IS YOUNGER THAN ALREADY STORED
-                    # FILE. THUS, STORED FILE BELONGS TO DSPACE AND CURRENTLY PROCESSED FILE DOES NOT
-                    if (current_ftyp_data['prefix'] is None) and (stored_ftyp_data['prefix'] is not None):
-                        log.msg("CENSOR SUFFIX NOT FOUND IN CURRENT FILE!")
-                        return False
+                # in case that current file has a 'D' prefix and stored file has a 'D' prefix, throw an exception,
+                # THIS SHOULD NEVER HAPPEN!
+                if (current_ftyp_data['prefix'] is not None) and (stored_ftyp_data['prefix'] is not None):
+                    log.err("workflow_doc_package(): processed file has a 'D' prefix, stored file has a 'D' prefix. THIS SHOULD NEVER HAPPEN")
+                    raise Exception("workflow_doc_package(): processed file has a 'D' prefix, stored file has a 'D' prefix")
+                    
+                # in case that current file doesn't have a 'D' prefix and stored file doesn't have a 'D' prefix, throw an Exception
+                # THIS SHOULD NEVER HAPPEN!
+                if (current_ftyp_data['prefix'] is None) and (stored_ftyp_data['prefix'] is None):
+                    log.err("workflow_doc_package(): processed file doesn't have a 'D' prefix, stored file doesn't have a 'D' prefix. THIS SHOULD NEVER HAPPEN")
+                    raise Exception("workflow_doc_package(): processed file doesn't have a 'D' prefix, stored file doesn't have a 'D' prefix")
+                
+                # THIS IS PERFECTLY OK, CURRENTLY PROCESSED FILE HAS A 'D' PREFIX, MEANING IT IS NEWER THAN STORED FILE AND BELONGS TO DSPACE
+                if (current_ftyp_data['prefix'] is not None) and (stored_ftyp_data['prefix'] is None):
+                    log.msg("'D' PREFIX FOUND IN CURRENT FILE, 'D' PREFIX NOT FOUND IN THE STORED FILE")
+                    log.msg("CURRENT FILE HAS A PRECEDENCE OVER STORED FILE, stored file should be removed from file information dict...")
+                    # by something else than None, we ensure that stored file will be deleted from file information dictionary 
+                    # f_dict later on
+                    return True
+
+                # THIS IS PERFECTLY OK, CURRENTLY PROCESSED FILE DOESN'T HAVE 'D' PREFIX, MEANING IT IS YOUNGER THAN ALREADY STORED
+                # FILE. THUS, STORED FILE BELONGS TO DSPACE AND CURRENTLY PROCESSED FILE DOES NOT
+                if (current_ftyp_data['prefix'] is None) and (stored_ftyp_data['prefix'] is not None):
+                    log.msg("'D' PREFIX FOUND IN THE STORED FILE, 'D' PREFIX NOT FOUND IN CURRENT FILE, ")
+                    log.msg("STORED FILE HAS A PRECEDENCE OVER STORED FILE, stored file should be removed from file information dict...")
+                    return False
             else:
                 # ftyp values are not matching, it's not the same type of file
                 log.msg("FTYP VALUES NOT MATCHING!")

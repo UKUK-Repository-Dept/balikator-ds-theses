@@ -283,6 +283,7 @@ class workflow_doc_package(object):
             # just a sanity check below, I guess...
             # if current file has a 'censorship' suffix present
             if ftyp_censor_suffix is not None:
+                log.msg("workflow_doc_package - perform_regex_match(): Performing regex match on CENSORED FILE with FTYP = {}".format(ftyp))
                 # censored file should not have a numbering extenson, e.g. the should not be a file with ftyp = DPRC2 or ftyp = DRPC3, ...
                 if ftyp_numbering_extension is not None:
                     raise Exception("workflow_doc_package(): censored file should not have a numbering extension")
@@ -303,13 +304,19 @@ class workflow_doc_package(object):
 
         def perform_old_file_evaluation(current_ftyp_data, stored_ftyp_data):
 
+            log.msg("CURRENT FILE VS STORED FILE:")
+            log.msg("FTYP BASE = current {} / old {}").format(current_ftyp_data['base'], stored_ftyp_data['base'])
             if current_ftyp_data['base'] == stored_ftyp_data['base']:
                 # STORED file DOES HAVE A CENSOR SUFFIX -> WE ALREADY HAVE THE RIGH FILE'S INFORMATION STORED
+                log.msg("Found matching FTYP bases!")
+                log.msg("Checking if STORED FILE HAS A CENSOR SUFFIX...")
                 if stored_ftyp_data['censor_suffix'] is not None:
+                    log.msg("CENSOR SUFFIX FOUND IN STORED FILE!")
                     return False
                 # STORED file DOESN'T HAVE A CENSOR SUFFIX, THERE'S A POSSIBILITY, THAT WE ARE CURRENTLY PROCESSING NEWER FILE
                 # THAT BELONGS TO DSPACE INSTEAD OF THE ONE ALREADY STORED IN f_dict file information dictionary
                 else:
+                    log.msg("CENSOR SUFFIX NOT FOUND IN STORED FILE!")
                     # in case that current file has a 'D' prefix and stored file has a 'D' prefix, throw an exception,
                     # THIS SHOULD NEVER HAPPEN!
                     if (current_ftyp_data['prefix'] is not None) and (stored_ftyp_data['prefix'] is not None):
@@ -324,6 +331,7 @@ class workflow_doc_package(object):
                 
                     # THIS IS PERFECTLY OK, CURRENTLY PROCESSED FILE HAS A 'D' PREFIX, MEANING IT IS NEWER THAN STORED FILE AND BELONGS TO DSPACE
                     if (current_ftyp_data['prefix'] is not None) and (stored_ftyp_data['prefix'] is None):
+                        log.msg("CENSOR SUFFIX FOUND IN CURRENT FILE!")
                         # by something else than None, we ensure that stored file will be deleted from file information dictionary 
                         # f_dict later on
                         return True
@@ -331,9 +339,11 @@ class workflow_doc_package(object):
                     # THIS IS PERFECTLY OK, CURRENTLY PROCESSED FILE DOESN'T HAVE 'D' PREFIX, MEANING IT IS YOUNGER THAN ALREADY STORED
                     # FILE. THUS, STORED FILE BELONGS TO DSPACE AND CURRENTLY PROCESSED FILE DOES NOT
                     if (current_ftyp_data['prefix'] is None) and (stored_ftyp_data['prefix'] is not None):
+                        log.msg("CENSOR SUFFIX NOT FOUND IN CURRENT FILE!")
                         return False
             else:
                 # ftyp values are not matching, it's not the same type of file
+                log.msg("FTYP VALUES NOT MATCHING!")
                 return False
 
 
@@ -361,7 +371,7 @@ class workflow_doc_package(object):
         #       2.a: continue to next file in f_dict
         def old_file_version_stored(file_obj, f_dict):
 
-            log.msg("Performing REGEX MATCH ON CURRENT FTYP: {}".format(file_obj.ftyp))
+            log.msg("workflow_doc_package - old_file_version_stored(): Checking if older file is stored in f_dict: FID = {}\tFTYP = {}".format(file_obj.fid, file_obj.ftyp))
             current_file_ftyp_data =  perform_regex_match(file_obj.ftyp)
             
             for key, inner_dict in f_dict.items():
@@ -371,10 +381,15 @@ class workflow_doc_package(object):
                 log.msg("Performing REGEX MATCH ON STORED FTYP: {}".format(stored_ftyp))
                 stored_file_ftyp_data  = perform_regex_match(stored_ftyp)
                 
+                log.msg("Performing old file evaluation on two files with the following information:")
+                log.msg("CURRENTLY PROCESSED FILE:")
+                log.msg(json.dumps(current_file_ftyp_data))
+                log.msg("STORED FILE")
+                log.msg(json.dumps(stored_file_ftyp_data))
                 old_file_stored = perform_old_file_evaluation(current_file_ftyp_data, stored_file_ftyp_data)
 
                 if old_file_stored is True:
-                    # action is Not none, meaining that old file verion
+                    # we found an older file version, we will return fid of the file that should be removed from fileinfo dictionary (file won't be stored in DSpace)
                     return inner_dict['fid']
                 else:
                     continue
@@ -453,11 +468,14 @@ class workflow_doc_package(object):
             if files_doc is None:
                 raise Exception("Didn't find any information about theses files in SIS database.")
             f_info = {}
+            
             for file in files_doc:
-
+                log.msg("workflow_doc_package - get_files_information(): Processing file FID = {}\tFTYP = {}".format(file.fid, file.ftyp))
                 translated_ftyp = get_translated_ftyp(file)
 
                 if file.farchivni is None:  # get information only about active files in storage (farchivni == None(NULL))
+                    log.msg("workflow_doc_package - get_files_information(): FILE IS NOT FARCHIVNI: File FID = {}\tFTYP = {}: FARCHIVNI = {}".format(file.fid, file.ftyp, file.farchivni))
+                    
                     orig_f_path = self.get_file_location(fid=file.fid)
                     meta_f_path = self.get_file_location(fid=file.fid, f_type='meta')
                     if orig_f_path is None:
@@ -468,8 +486,10 @@ class workflow_doc_package(object):
 
                     file_forbidden = False
                     if translated_ftyp in forbidden_files:
+                        log.msg("workflow_doc_package - get_files_information(): FILE IS FORBIDDEN: File FID = {}\tFTYP = {}: FARCHIVNI = {}".format(file.fid, file.ftyp, file.farchivni))
                         file_forbidden = True
 
+                    log.msg("workflow_doc_package - get_files_information(): Checking if older version is stored - File FID = {}\tFTYP = {}".format(file.fid, file.ftyp))
                     old_version_fid = old_file_version_stored(file, f_info)
 
                     log.msg("File: {}\tOld version stored: {}".format(file.fnazev, old_version_fid))
@@ -507,6 +527,7 @@ class workflow_doc_package(object):
                         }
                     })
                 else:
+                    log.msg("workflow_doc_package - get_files_information(): FILE IS FARCHIVNI: File FID = {}\tFTYP = {}: FARCHIVNI = {}".format(file.fid, file.ftyp, file.farchivni))
                     continue
 
                 log.msg("FILE INFO:\n")

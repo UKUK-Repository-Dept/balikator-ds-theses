@@ -505,20 +505,19 @@ class workflow_doc_package(object):
                     log.msg("workflow_doc_package - get_files_information(): Checking if older version is stored - File FID = {}\tFTYP = {}".format(file.fid, file.ftyp))
                     fid_to_remove = old_file_version_stored(file, f_info)
 
-                    log.msg("File: {}\tOld version stored: {}".format(file.fnazev, old_version_fid))
+                    
                     # check if old version of a file is stored in f_info dict,
                     # e.g. if currently processed file has ftyp begins with 'D', and there is the same file
                     # stored in dict but with ftyp not beginning with 'D', remove the currently stored file
                     # and store currently processed file
                     try:
                         if fid_to_remove is not None:
-                            log.msg("FILE FID: ", file.fid)
-                            log.msg("CURRENTLY PROCESSED FILE FTYP: ", file.ftyp)
-                            log.msg("Found old version of the file store in file info dict, deleting old version info.")
+                            log.msg("Found old version of the file STORED in file info dict. Deleting old file info.")
+                            log.msg("CURRENT FILE:\tFID = {} FTYP = {}".format(file.fid, file.ftyp))
+                            log.msg("STORED FILE:\tFID = {}".format(fid_to_remove))
                             f_info.pop(fid_to_remove)
                         else:
-                            log.msg("FILE FID: ", file.fid)
-                            log.msg("CURRENTLY PROCESSED FILE FTYP: ", file.ftyp)
+                            log.msg("CURRENT FILE:\tFID = {} FTYP = {}".format(file.fid, file.ftyp))
                             log.msg("No older version of the file stored in the file info dict...")
                             
                     except:

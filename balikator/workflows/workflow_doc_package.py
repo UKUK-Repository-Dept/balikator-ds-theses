@@ -302,24 +302,27 @@ class workflow_doc_package(object):
             )
             return file_ftyp_data
 
-        def perform_old_file_evaluation(current_ftyp_data, stored_ftyp_data):
+        def perform_file_evaluation(current_ftyp_data, stored_ftyp_data):
 
             log.msg("CURRENT FILE VS STORED FILE:")
-            log.msg("FTYP BASE = current {} / old {}".format(current_ftyp_data['base'], stored_ftyp_data['base']))
+            log.msg("FTYP BASE = current {} / stored {}".format(current_ftyp_data['base'], stored_ftyp_data['base']))
             if current_ftyp_data['base'] == stored_ftyp_data['base']:
-                # STORED file DOES HAVE A CENSOR SUFFIX -> WE ALREADY HAVE THE RIGH FILE'S INFORMATION STORED
+                
                 log.msg("Found matching FTYP bases!")
                 log.msg("Checking if CURRENT FILE HAS A CENSOR SUFFIX...")
                 if current_ftyp_data['censor_suffix'] is not None:
+                    # STORED file DOES HAVE A CENSOR SUFFIX -> WE ALREADY HAVE THE VALID FILE'S INFORMATION STORED
                     log.msg("CENSOR SUFFIX FOUND IN CURRENT FILE!")
                     log.msg("CURRENT FILE HAS A PRECEDENCE OVER STORED FILE, stored file should removed from file information dict...")
                     
+                    # return FID of stored file, it should be removed because we have newer one available
                     return True
                 
                 if stored_ftyp_data['censor_suffix'] is not None:
                     log.msg("CENSOR SUFFIX FOUND IN STORED FILE!")
-                    log.msg("STORED FILE HAS A PRECEDENCE OVER STORED FILE, stored file should removed from file information dict...")
+                    log.msg("STORED FILE HAS A PRECEDENCE OVER STORED FILE, stored file should remain in file information dict...")
                     
+                    # return FID of current file, we have to remove it, because the one that is currently stored is not valid / is older
                     return False
                 
                 # WE DIDN'T FIND A CENSOR SUFFIX IN CURRENT NOR IN STORED FILE, SO WE SHOULD EVALUATE THESE FILES
@@ -341,8 +344,7 @@ class workflow_doc_package(object):
                 if (current_ftyp_data['prefix'] is not None) and (stored_ftyp_data['prefix'] is None):
                     log.msg("'D' PREFIX FOUND IN CURRENT FILE, 'D' PREFIX NOT FOUND IN THE STORED FILE")
                     log.msg("CURRENT FILE HAS A PRECEDENCE OVER STORED FILE, stored file should be removed from file information dict...")
-                    # by something else than None, we ensure that stored file will be deleted from file information dictionary 
-                    # f_dict later on
+                    # return FID of stored file, it should be  be deleted from file information dictionary
                     return True
 
                 # THIS IS PERFECTLY OK, CURRENTLY PROCESSED FILE DOESN'T HAVE 'D' PREFIX, MEANING IT IS YOUNGER THAN ALREADY STORED
@@ -350,11 +352,13 @@ class workflow_doc_package(object):
                 if (current_ftyp_data['prefix'] is None) and (stored_ftyp_data['prefix'] is not None):
                     log.msg("'D' PREFIX FOUND IN THE STORED FILE, 'D' PREFIX NOT FOUND IN CURRENT FILE, ")
                     log.msg("STORED FILE HAS A PRECEDENCE OVER STORED FILE, stored file should be removed from file information dict...")
+                    # return FID of a current file, it should be removed, because we have a valid / newer file already stored
                     return False
             else:
                 # ftyp values are not matching, it's not the same type of file
                 log.msg("FTYP VALUES NOT MATCHING!")
-                return False
+                # return None, because the FTYP values are not matching a removing anything is not necessary for the two compared files
+                return True
 
 
         # TODO: Check if new logic works with all kinds of file types (all kinds of FTYP values)
@@ -379,12 +383,14 @@ class workflow_doc_package(object):
         #               -> return None (stored file should not be deleted as the currently processed file is older the the one stored in f_dict)
         #   2. file doesn't have the same base ftyp
         #       2.a: continue to next file in f_dict
-        def old_file_version_stored(file_obj, f_dict):
+        def should_store_file(file_obj, f_dict):
+            
 
             log.msg("workflow_doc_package - old_file_version_stored(): Checking if older file is stored in f_dict: FID = {}\tFTYP = {}".format(file_obj.fid, file_obj.ftyp))
             current_file_ftyp_data =  perform_regex_match(file_obj.ftyp)
             
             for key, inner_dict in f_dict.items():
+
                 # get complete stoted ftyp from file info dictionary
                 stored_ftyp = str(inner_dict['ftyp'])
                 # match stored ftyp from file info dictionary against ftyp regex 
@@ -392,19 +398,20 @@ class workflow_doc_package(object):
                 stored_file_ftyp_data  = perform_regex_match(stored_ftyp)
                 
                 log.msg("Performing old file evaluation on two files with the following information:")
-                log.msg("CURRENTLY PROCESSED FILE:")
-                log.msg(json.dumps(current_file_ftyp_data))
-                log.msg("STORED FILE")
-                log.msg(json.dumps(stored_file_ftyp_data))
-                old_file_stored = perform_old_file_evaluation(current_file_ftyp_data, stored_file_ftyp_data)
+                log.msg("CURRENTLY PROCESSED FILE:\n{}".format(json.dumps(current_file_ftyp_data)))
+                log.msg("STORED FILE:\n{}".format(json.dumps(stored_file_ftyp_data)))
 
-                if old_file_stored is True:
+                should_store = perform_file_evaluation(current_file_ftyp_data, stored_file_ftyp_data)
+
+                if should_store is True:
                     # we found an older file version, we will return fid of the file that should be removed from fileinfo dictionary (file won't be stored in DSpace)
-                    return inner_dict['fid']
+                    log.msg("FILE FID = {} FTYP = {} SHOULD BE STORED IN f_info dictionary...")
+                    return True
                 else:
                     continue
             
-            return None
+            log.msg("FILE FID = {} FTYP = {} SHOULD NOT BE STORED IN f_info dictionary...")
+            return False
 
                 # # check if current_base_ftyp and stored_base_ftyp are the same
                 # if current_base_ftyp == stored_base_ftyp:
@@ -440,32 +447,6 @@ class workflow_doc_package(object):
                 #     # ftyp values are not matching, it's not the same type of file
                 #     return None
 
-        """ current_orig_ftyp = str(file_obj.ftyp).lstrip('D')
-
-            for key, inner_dict in f_dict.items():
-                stored_orig_ftyp = str(inner_dict['ftyp']).lstrip('D')
-                if current_orig_ftyp == stored_orig_ftyp:
-                    if str(file_obj.ftyp).startswith('D'):
-                        # new version of the same file (begins with D)
-                        log.msg("CURRENT FTYP: ", file_obj.ftyp)
-                        log.msg("STORED FTYP: ", inner_dict['ftyp'])
-                        log.msg("CURRENT FID: ", file_obj.fid)
-                        log.msg("STORED FID: ", inner_dict['fid'])
-                        # This should return fid of stored file that has to be removed from info dict
-                        return inner_dict['fid']
-                    else:
-                        log.msg("CURRENT FTYP: ", file_obj.ftyp)
-                        log.msg("STORED FTYP: ", inner_dict['ftyp'])
-                        log.msg("CURRENT FID: ", file_obj.fid)
-                        log.msg("STORED FID: ", inner_dict['fid'])
-                        # This should return None
-                        return None
-                else:
-                    # ftyp values are not matching, it's not the same type of file
-                    log.msg("CURRENT FTYP: ", file_obj.ftyp)
-                    log.msg("STORED FTYP: ", inner_dict['ftyp'])
-                    return None """
-
         try:
 
             dipl2doc = self.db_sis.dipl2doc  # make dipl2doc a searchable table object
@@ -473,7 +454,7 @@ class workflow_doc_package(object):
             # information that we need to gather: FID, FTYP, FNAZEV, DID
             files_doc = dipl2doc.filter_by(did=doc.doc_id).all()
 
-            forbidden_files = file_availability_check()
+            # forbidden_files = file_availability_check()
 
             if files_doc is None:
                 raise Exception("Didn't find any information about theses files in SIS database.")
@@ -481,67 +462,82 @@ class workflow_doc_package(object):
             
             for file in files_doc:
                 log.msg("workflow_doc_package - get_files_information(): Processing file FID = {}\tFTYP = {}".format(file.fid, file.ftyp))
-                translated_ftyp = get_translated_ftyp(file)
+                
 
                 if file.farchivni is None:  # get information only about active files in storage (farchivni == None(NULL))
                     log.msg("workflow_doc_package - get_files_information(): FILE IS NOT FARCHIVNI: File FID = {}\tFTYP = {}: FARCHIVNI = {}".format(file.fid, file.ftyp, file.farchivni))
+
+                    log.msg("workflow_doc_package - get_files_information(): Checking if file should be stored in f_info dict...")
+                    log.msg("File FID = {}\tFTYP = {}".format(file.fid, file.ftyp))
                     
-                    orig_f_path = self.get_file_location(fid=file.fid)
-                    meta_f_path = self.get_file_location(fid=file.fid, f_type='meta')
-                    if orig_f_path is None:
-                        raise Exception("Failed to get the path to original file in storage.")
+                    if should_store_file(file, f_info) == True:
 
-                    if meta_f_path is None:
-                        raise Exception("Failed to get the path to metadata file in storage.")
+                        translated_ftyp = get_translated_ftyp(file)
 
-                    file_forbidden = False
-                    if translated_ftyp in forbidden_files:
-                        log.msg("workflow_doc_package - get_files_information(): FILE IS FORBIDDEN: File FID = {}\tFTYP = {}: FARCHIVNI = {}".format(file.fid, file.ftyp, file.farchivni))
-                        file_forbidden = True
+                        orig_f_path = self.get_file_location(fid=file.fid)
+                        meta_f_path = self.get_file_location(fid=file.fid, f_type='meta')
+                    
+                        if orig_f_path is None:
+                            raise Exception("Failed to get the path to original file in storage.")
 
-                    log.msg("workflow_doc_package - get_files_information(): Checking if older version is stored - File FID = {}\tFTYP = {}".format(file.fid, file.ftyp))
-                    old_version_fid = old_file_version_stored(file, f_info)
+                        if meta_f_path is None:
+                            raise Exception("Failed to get the path to metadata file in storage.")
 
-                    log.msg("File: {}\tOld version stored: {}".format(file.fnazev, old_version_fid))
-                    # check if old version of a file is stored in f_info dict,
-                    # e.g. if currently processed file has ftyp begins with 'D', and there is the same file
-                    # stored in dict but with ftyp not beginning with 'D', remove the currently stored file
-                    # and store currently processed file
-                    try:
-                        if old_version_fid is not None:
-                            log.msg("FILE FID: ", file.fid)
-                            log.msg("CURRENTLY PROCESSED FILE FTYP: ", file.ftyp)
-                            log.msg("Found old version of the file store in file info dict, deleting old version info.")
-                            f_info.pop(old_version_fid)
-                        else:
-                            log.msg("FILE FID: ", file.fid)
-                            log.msg("CURRENTLY PROCESSED FILE FTYP: ", file.ftyp)
-                            log.msg("No older version of the file stored in the file info dict...")
-                            pass
+                        file_forbidden = False
+                        
+                        if translated_ftyp in forbidden_files:
+                            log.msg("workflow_doc_package - get_files_information(): FILE IS FORBIDDEN: File FID = {}\tFTYP = {}: FARCHIVNI = {}".format(file.fid, file.ftyp, file.farchivni))
+                            file_forbidden = True
+
+                        log.msg("Storing file FID = {} FTYP = {} in f_info dictionary...")
+                            
+                        # Add file to f_info dictionary for later use during packaging
+                        f_info.update({
+                            file.fid: {
+                                'did': file.did,
+                                'ftyp': file.ftyp,
+                                'translated_ftyp': translated_ftyp,
+                                'fnazev': file.fnazev,
+                                'fforbidden': file_forbidden,
+                                'orig_file': orig_f_path,
+                                'meta_file': meta_f_path,
+                                'fid': file.fid,
+                            }
+                        })
+                    else:
+                        continue
+
+                    
+                    # old_version_fid = old_file_version_stored(file, f_info)
+
+                    # log.msg("File: {}\tOld version stored: {}".format(file.fnazev, old_version_fid))
+                    # # check if old version of a file is stored in f_info dict,
+                    # # e.g. if currently processed file has ftyp begins with 'D', and there is the same file
+                    # # stored in dict but with ftyp not beginning with 'D', remove the currently stored file
+                    # # and store currently processed file
+                    # try:
+                    #     if old_version_fid is not None:
+                            
+                    #         log.msg("CURRENTLY PROCESSED FILE: FID = {} FTYP: {}".format(file.fid, file.ftyp))
+                    #         log.msg("Found old version of the file store in file info dict, deleting old version info.")
+                    #         f_info.pop(old_version_fid)
+                    #     else:
+                            
+                    #         log.msg("CURRENTLY PROCESSED FILE: FID = {} FTYP: {}".format(file.fid, file.ftyp))
+                    #         log.msg("No older version of the file stored in the file info dict...")
+                            
+
                     except:
                         raise
 
-                    # construct path to storage folder
-                    # FIXED: fnazev is not unique identifier! Results in rewriting values of the f_info dictionary!
-                    # FIX: file.fid is used as unique identifier
-                    f_info.update({
-                        file.fid: {
-                            'did': file.did,
-                            'ftyp': file.ftyp,
-                            'translated_ftyp': translated_ftyp,
-                            'fnazev': file.fnazev,
-                            'fforbidden': file_forbidden,
-                            'orig_file': orig_f_path,
-                            'meta_file': meta_f_path,
-                            'fid': file.fid,
-                        }
-                    })
                 else:
-                    log.msg("workflow_doc_package - get_files_information(): FILE IS FARCHIVNI: File FID = {}\tFTYP = {}: FARCHIVNI = {}".format(file.fid, file.ftyp, file.farchivni))
+                    log.msg("workflow_doc_package - get_files_information(): FILE IS FARCHIVNI: FID = {} FTYP = {}: FARCHIVNI = {}".format(file.fid, file.ftyp, file.farchivni))
+                    log.msg("Moving to next file...")
                     continue
 
                 log.msg("FILE INFO:\n")
                 log.msg(json.dumps(f_info))
+
             try:
                 doc.work_files = f_info
                 log.msg("GET FILES INFORMATION:\n", doc.work_files)

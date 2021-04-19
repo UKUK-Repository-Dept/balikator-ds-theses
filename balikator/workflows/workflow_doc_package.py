@@ -386,6 +386,13 @@ class workflow_doc_package(object):
             current_file_ftyp_data =  perform_regex_match(file_obj.fid, file_obj.ftyp)
             
             for key, inner_dict in f_dict.items():
+                
+                if current_file_ftyp_data['fid'] == inner_dict['fid']:
+                    # we don't want to perform regular expression matching & old file evaluation on a file with the same FID
+                    # stored in the file info dictionary
+                    log.msg("Skipping evaluation of file FID = {} FTYP = {}: It doesn't make sense evaluate it against itself...")
+                    continue
+
                 # get complete stoted ftyp from file info dictionary
                 stored_ftyp = str(inner_dict['ftyp'])
                 stored_fid = inner_dict['fid']

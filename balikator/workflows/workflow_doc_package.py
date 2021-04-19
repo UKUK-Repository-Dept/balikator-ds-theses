@@ -387,11 +387,7 @@ class workflow_doc_package(object):
             
             for key, inner_dict in f_dict.items():
                 
-                if current_file_ftyp_data['fid'] == inner_dict['fid']:
-                    # we don't want to perform regular expression matching & old file evaluation on a file with the same FID
-                    # stored in the file info dictionary
-                    log.msg("Skipping evaluation of file FID = {} FTYP = {}: It doesn't make sense evaluate it against itself...")
-                    continue
+                
 
                 # get complete stoted ftyp from file info dictionary
                 stored_ftyp = str(inner_dict['ftyp'])
@@ -405,6 +401,14 @@ class workflow_doc_package(object):
                 log.msg(json.dumps(current_file_ftyp_data))
                 log.msg("STORED FILE")
                 log.msg(json.dumps(stored_file_ftyp_data))
+                
+                if current_file_ftyp_data['fid'] == stored_fid:
+                    # we don't want to perform regular expression matching & old file evaluation on a file with the same FID
+                    # stored in the file info dictionary
+                    log.msg("Skipping evaluation of file FID = {} FTYP = {}: It doesn't make sense evaluate it against itself...".format(
+                        current_file_ftyp_data['fid'],stored_fid))
+                    continue
+                
                 file_to_remove = perform_old_file_evaluation(current_file_ftyp_data, stored_file_ftyp_data)
 
                 if file_to_remove is not None:

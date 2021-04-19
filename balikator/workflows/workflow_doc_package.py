@@ -305,7 +305,7 @@ class workflow_doc_package(object):
         def perform_old_file_evaluation(current_ftyp_data, stored_ftyp_data):
 
             log.msg("CURRENT FILE VS STORED FILE:")
-            log.msg("FTYP BASE = current {} / old {}").format(current_ftyp_data['base'], stored_ftyp_data['base'])
+            log.msg("FTYP BASE = current {} / old {}".format(current_ftyp_data['base'], stored_ftyp_data['base']))
             if current_ftyp_data['base'] == stored_ftyp_data['base']:
                 # STORED file DOES HAVE A CENSOR SUFFIX -> WE ALREADY HAVE THE RIGH FILE'S INFORMATION STORED
                 log.msg("Found matching FTYP bases!")

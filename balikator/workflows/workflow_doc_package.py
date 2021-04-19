@@ -440,32 +440,6 @@ class workflow_doc_package(object):
                 #     # ftyp values are not matching, it's not the same type of file
                 #     return None
 
-        """ current_orig_ftyp = str(file_obj.ftyp).lstrip('D')
-
-            for key, inner_dict in f_dict.items():
-                stored_orig_ftyp = str(inner_dict['ftyp']).lstrip('D')
-                if current_orig_ftyp == stored_orig_ftyp:
-                    if str(file_obj.ftyp).startswith('D'):
-                        # new version of the same file (begins with D)
-                        log.msg("CURRENT FTYP: ", file_obj.ftyp)
-                        log.msg("STORED FTYP: ", inner_dict['ftyp'])
-                        log.msg("CURRENT FID: ", file_obj.fid)
-                        log.msg("STORED FID: ", inner_dict['fid'])
-                        # This should return fid of stored file that has to be removed from info dict
-                        return inner_dict['fid']
-                    else:
-                        log.msg("CURRENT FTYP: ", file_obj.ftyp)
-                        log.msg("STORED FTYP: ", inner_dict['ftyp'])
-                        log.msg("CURRENT FID: ", file_obj.fid)
-                        log.msg("STORED FID: ", inner_dict['fid'])
-                        # This should return None
-                        return None
-                else:
-                    # ftyp values are not matching, it's not the same type of file
-                    log.msg("CURRENT FTYP: ", file_obj.ftyp)
-                    log.msg("STORED FTYP: ", inner_dict['ftyp'])
-                    return None """
-
         try:
 
             dipl2doc = self.db_sis.dipl2doc  # make dipl2doc a searchable table object
@@ -479,6 +453,10 @@ class workflow_doc_package(object):
                 raise Exception("Didn't find any information about theses files in SIS database.")
             f_info = {}
             
+            # TODO: We should be checking if there's a version of the same file (with same FTYP) that belongs to DSpace before actually processing the file in this program
+            # TODO: to save some processing time / resources. This check should be done on the level of DATABASE RECORDS (FOR FILES IN DIPL2DOC table) 
+            # TODO: instead of in the level of programaticaly generated DICTIONARY
+
             for file in files_doc:
                 log.msg("workflow_doc_package - get_files_information(): Processing file FID = {}\tFTYP = {}".format(file.fid, file.ftyp))
 

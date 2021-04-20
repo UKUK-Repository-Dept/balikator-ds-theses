@@ -386,8 +386,6 @@ class workflow_doc_package(object):
             current_file_ftyp_data =  perform_regex_match(file_obj.fid, file_obj.ftyp)
             
             for key, inner_dict in f_dict.items():
-                
-                
 
                 # get complete stoted ftyp from file info dictionary
                 stored_ftyp = str(inner_dict['ftyp'])
@@ -418,40 +416,50 @@ class workflow_doc_package(object):
                     continue
             
             return None
+        
+        def create_f_info(file, f_info):
+            
+            log.msg("Getting translated FTYP...")
+            translated_ftyp = get_translated_ftyp(file)
+            
+            log.msg("Getting original file location...")
+            orig_f_path = self.get_file_location(fid=file.fid)
+            log.msg("Getting metadata file location...")
+            meta_f_path = self.get_file_location(fid=file.fid, f_type='meta')
+            
+            if orig_f_path is None:
+                raise Exception("Failed to get the path to original file in storage.")
 
-                # # check if current_base_ftyp and stored_base_ftyp are the same
-                # if current_base_ftyp == stored_base_ftyp:
-                #     # STORED file DOES HAVE A CENSOR SUFFIX -> WE ALREADY HAVE THE RIGH FILE'S INFORMATION STORED
-                #     if stored_censor_suffix is not None:
-                #         return None
-                #     # STORED file DOESN'T HAVE A CENSOR SUFFIX, THERE'S A POSSIBILITY, THAT WE ARE CURRENTLY PROCESSING NEWER FILE
-                #     # THAT BELONGS TO DSPACE INSTEAD OF THE ONE ALREADY STORED IN f_dict file information dictionary
-                #     else:
-                #         # in case that current file has a 'D' prefix and stored file has a 'D' prefix, throw an exception,
-                #         # THIS SHOULD NEVER HAPPEN!
-                #         if (current_prefix is not None) and (stored_prexif is not None):
-                #             log.err("workflow_doc_package(): processed file has a 'D' prefix, stored file has a 'D' prefix. THIS SHOULD NEVER HAPPEN")
-                #             raise Exception("workflow_doc_package(): processed file has a 'D' prefix, stored file has a 'D' prefix")
-                        
-                #         # in case that current file doesn't have a 'D' prefix and stored file doesn't have a 'D' prefix, throw an Exception
-                #         # THIS SHOULD NEVER HAPPEN!
-                #         if (current_prefix is None) and (stored_prefix is None):
-                #             log.err("workflow_doc_package(): processed file doesn't have a 'D' prefix, stored file doesn't have a 'D' prefix. THIS SHOULD NEVER HAPPEN")
-                #             raise Exception("workflow_doc_package(): processed file doesn't have a 'D' prefix, stored file doesn't have a 'D' prefix")
-                  
-                #         # THIS IS PERFECTLY OK, CURRENTLY PROCESSED FILE HAS A 'D' PREFIX, MEANING IT IS NEWER THAN STORED FILE AND BELONGS TO DSPACE
-                #         if (current_prefix is not None) and (stored_prefix is None):
-                #             # by returning the stored file's FID, we ensure that this file will be deleted from file information dictionary 
-                #             # f_dict later on
-                #             return inner_dict['fid']
+            if meta_f_path is None:
+                raise Exception("Failed to get the path to metadata file in storage.")
 
-                #         # THIS IS PERFECTLY OK, CURRENTLY PROCESSED FILE DOESN'T HAVE 'D' PREFIX, MEANING IT IS YOUNGER THAN ALREADY STORED
-                #         # FILE. THUS, STORED FILE BELONGS TO DSPACE AND CURRENTLY PROCESSED FILE DOES NOT
-                #         if (current_prefix is None) and (stored_prexi is not None):
-                #             return None
-                # else:
-                #     # ftyp values are not matching, it's not the same type of file
-                #     return None
+            log.msg("Checking if file is forbidden...")
+            file_forbidden = False
+
+            if translated_ftyp in forbidden_files:
+                log.msg("workflow_doc_package - get_files_information(): FILE IS FORBIDDEN: File FID = {}\tFTYP = {}: FARCHIVNI = {}".format(
+                    file.fid, file.ftyp, file.farchivni))
+                file_forbidden = True
+
+            log.msg("workflow_doc_package - update_f_info(): Storing file information in f_info dict...")
+            log.msg("FILE INFO: THESES DID: {}\nFID = {}\nFTYP = {}\nTRANSLATED_FTYP = {}\nFNAZEV = {}\nFFORBIDDEN = {}\nORIG_FILE = {}\nMETA_FILE = {}".format(
+                file.did, file.ftyp, translated_ftyp, file.fnazev, file_forbidden, orig_f_path, meta_f_path
+            ))
+
+            f_info.update({
+                file.fid: {
+                    'did': file.did,
+                    'ftyp': file.ftyp,
+                    'translated_ftyp': translated_ftyp,
+                    'fnazev': file.fnazev,
+                    'fforbidden': file_forbidden,
+                    'orig_file': orig_f_path,
+                    'meta_file': meta_f_path,
+                    'fid': file.fid,
+                }
+            })
+
+            return f_info
 
         try:
 
@@ -475,55 +483,41 @@ class workflow_doc_package(object):
 
                 if file.farchivni is None:  # get information only about active files in storage (farchivni == None(NULL))
                     
-                    translated_ftyp = get_translated_ftyp(file)
                     log.msg("workflow_doc_package - get_files_information(): FILE IS NOT FARCHIVNI: File FID = {}\tFTYP = {}: FARCHIVNI = {}".format(file.fid, file.ftyp, file.farchivni))
-                    
-                    orig_f_path = self.get_file_location(fid=file.fid)
-                    meta_f_path = self.get_file_location(fid=file.fid, f_type='meta')
-                    if orig_f_path is None:
-                        raise Exception("Failed to get the path to original file in storage.")
 
-                    if meta_f_path is None:
-                        raise Exception("Failed to get the path to metadata file in storage.")
-
-                    file_forbidden = False
-                    if translated_ftyp in forbidden_files:
-                        log.msg("workflow_doc_package - get_files_information(): FILE IS FORBIDDEN: File FID = {}\tFTYP = {}: FARCHIVNI = {}".format(file.fid, file.ftyp, file.farchivni))
-                        file_forbidden = True
-                    
-                    log.msg("Storing file information in f_info dict...")
-
-                    f_info.update({
-                        file.fid: {
-                            'did': file.did,
-                            'ftyp': file.ftyp,
-                            'translated_ftyp': translated_ftyp,
-                            'fnazev': file.fnazev,
-                            'fforbidden': file_forbidden,
-                            'orig_file': orig_f_path,
-                            'meta_file': meta_f_path,
-                            'fid': file.fid,
-                        }
-                    })
-
+                    # check if old version of a file is stored in f_info dict
                     log.msg("workflow_doc_package - get_files_information(): Checking if older version is stored - File FID = {}\tFTYP = {}".format(file.fid, file.ftyp))
                     fid_to_remove = old_file_version_stored(file, f_info)
 
-                    
-                    # check if old version of a file is stored in f_info dict,
-                    # e.g. if currently processed file has ftyp begins with 'D', and there is the same file
-                    # stored in dict but with ftyp not beginning with 'D', remove the currently stored file
-                    # and store currently processed file
                     try:
                         if fid_to_remove is not None:
+
+                            if fid_to_remove == file.fid:
+                                # this means, that the stored file is valid file to go to DSpace
+                                # and the currently processed file is not -> therefore it shouldn't be written to the
+                                # file information dictionary (f_info) -> we'll just continue processing next file
+                                continue
+                            
+                            # otherwise, we know that the fid_to_remove has to be a fid of file already stored
+                            # in the f_info dictionary and that it is no longer a valid file to be stored there,
+                            # because the currently processed file a newer version -> THEREFORE CURRENTLY PROCESSED FILE IS VALID
+                            # -> we should remove NON VALID FILE (based on it's FID) from f_info dict
+                            # -> we should write a currently processed file to f_info dict  
                             log.msg("Found old version of the file STORED in file info dict. Deleting old file info.")
                             log.msg("CURRENT FILE:\tFID = {} FTYP = {}".format(file.fid, file.ftyp))
                             log.msg("FILE TO REMOVE:\tFID = {}".format(fid_to_remove))
                             f_info.pop(fid_to_remove)
+
+                            create_f_info(file, f_info)
+
                         else:
+                            # when the FID is None, it means that there's no older file / invalid file stored in
+                            # f_info dict nor the currently processed file is stored in the f_info dict
+                            # -> we should write the file information to f_info dict
                             log.msg("CURRENT FILE:\tFID = {} FTYP = {}".format(file.fid, file.ftyp))
                             log.msg("No older version of the file stored in the file info dict...")
                             
+                            create_f_info(file, f_info)
                     except:
                         raise
 

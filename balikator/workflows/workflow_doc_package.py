@@ -435,8 +435,8 @@ class workflow_doc_package(object):
                 file_forbidden = True
 
             log.msg("workflow_doc_package - update_f_info(): Storing file information in f_info dict...")
-            log.msg("FILE INFO: THESES DID: {}\nFID = {}\nFTYP = {}\nTRANSLATED_FTYP = {}\nFNAZEV = {}\nFFORBIDDEN = {}\nORIG_FILE = {}\nMETA_FILE = {}".format(
-                file.did, file.ftyp, translated_ftyp, file.fnazev, file_forbidden, orig_f_path, meta_f_path
+            log.msg("FILE INFO: THESES DID = {}\nFID = {}\nFTYP = {}\nTRANSLATED_FTYP = {}\nFNAZEV = {}\nFFORBIDDEN = {}\nORIG_FILE = {}\nMETA_FILE = {}".format(
+                file.did, file.fid, file.ftyp, translated_ftyp, file.fnazev, file_forbidden, orig_f_path, meta_f_path
             ))
 
             f_info.update({

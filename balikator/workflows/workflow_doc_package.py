@@ -501,7 +501,7 @@ class workflow_doc_package(object):
                             log.msg("FILE TO REMOVE:\tFID = {}".format(fid_to_remove))
                             f_info.pop(fid_to_remove)
 
-                            create_f_info(file, f_info)
+                            f_info = create_f_info(file, f_info)
 
                         else:
                             # when the FID is None, it means that there's no older file / invalid file stored in
@@ -510,7 +510,7 @@ class workflow_doc_package(object):
                             log.msg("CURRENT FILE:\tFID = {} FTYP = {}".format(file.fid, file.ftyp))
                             log.msg("No older version of the file stored in the file info dict...")
                             
-                            create_f_info(file, f_info)
+                            f_info = create_f_info(file, f_info)
                     except:
                         raise
 

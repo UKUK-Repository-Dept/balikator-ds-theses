@@ -351,7 +351,7 @@ class utility(object):
         
         if info_type == 'coll_items_info':
             
-            if params = None:
+            if params is None:
                 raise Exception("Exception at get_solr_data for mode 'coll_items_info': params cannot be 'None'")
             else:
 

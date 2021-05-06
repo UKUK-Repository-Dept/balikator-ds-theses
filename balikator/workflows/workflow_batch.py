@@ -185,7 +185,6 @@ class workflow_batch(object):
             'fields_of_interest': str(self.config.get("index_discovery_query_config","solr_fields_of_interest")).lstrip().rstrip(),
             'default_sort_field': self.config.get('index_discovery_query_config', 'solr_default_sort_field'),
             'default_sort_order': self.config.get('index_discovery_query_config', 'solr_default_sort_order'),
-            'cursorMark': self.config.get("index_discovery_query_config", "sorl_defaultCursorMark"),
             'resource_type': self.config.get('index_discovery_query_config', 'item_resourcetype')
             }
         
@@ -193,7 +192,11 @@ class workflow_batch(object):
         for key_uuid, value in self.config.items('index_discovery_collections_map'):
 
             # update collection_id in the params dictionary
-            query_params.update({'collection_id': key_uuid})
+            query_params.update(
+                {
+                    'collection_id': key_uuid,
+                    'cursorMark': self.config.get("index_discovery_query_config", "sorl_defaultCursorMark")
+                })
 
             done = False
             gathered_docs = 0
@@ -202,7 +205,7 @@ class workflow_batch(object):
 
             log.msg("Getting items in collection {}: {}".format(key_uuid, value))
             while done is False:
-
+                
                 # get collection data from SOLR (json)
                 json_data = self.utility.get_solr_data( info_type="coll_items_info", params=query_params)
 
@@ -219,6 +222,8 @@ class workflow_batch(object):
                 gathered_docs += len(processed_solr_data)
 
                 nextCursorMark = self.utility.process_solr_cursor_mark(json_data)
+
+                log.msg("Current CursorMark: {}\tNext CursorMark: {}".format(query_params['cursorMark'], nextCursorMark))
 
                 log.msg("Collection {}: {} - PROCESSED DOCS: {}".format(key_uuid, value, gathered_docs))
                 

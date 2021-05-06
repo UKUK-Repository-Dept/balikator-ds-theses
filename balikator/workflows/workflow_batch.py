@@ -203,9 +203,9 @@ class workflow_batch(object):
             
             collection_items_list = list()
 
-            log.msg("Getting items in collection {}: {}".format(key_uuid, value))
             while done is False:
-                
+
+                log.msg("Getting items in collection {}: {}".format(key_uuid, value))    
                 # get collection data from SOLR (json)
                 json_data = self.utility.get_solr_data( info_type="coll_items_info", params=query_params)
 
@@ -225,13 +225,14 @@ class workflow_batch(object):
 
                 log.msg("Current CursorMark: {}\tNext CursorMark: {}".format(query_params['cursorMark'], nextCursorMark))
 
-                log.msg("Collection {}: {} - PROCESSED DOCS: {}".format(key_uuid, value, gathered_docs))
+                log.msg("Collection {}: {} - CURRENTLY PROCESSED DOCS: {}".format(key_uuid, value, len(processed_solr_data)))
                 
                 if query_params['cursorMark'] == nextCursorMark:
                     done = True
                 
                 query_params.update({'cursorMark': nextCursorMark})
 
+            log.msg("Collection {}: {} - TOTAL PROCESSED DOCS: {}".format(key_uuid, value, gathered_docs))
                 # check if further processing is needed
                 # if gathered_docs == hit_count:
                 #     get_more_data = False

@@ -415,6 +415,6 @@ class utility(object):
         return num_found['numFound']
 
     def process_solr_cursor_mark(self, json_data):
-        next_cursorMark = pyjq.one('.response | {"cursorMark": .\"nextCursorMark\"}', json_data)
+        next_cursorMark = pyjq.one('{"cursorMark": .nextCursorMark}', json_data)
 
         return next_cursorMark['cursorMark']

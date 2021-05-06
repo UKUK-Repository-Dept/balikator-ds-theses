@@ -222,10 +222,10 @@ class workflow_batch(object):
 
                 log.msg("Collection {}: {} - PROCESSED DOCS: {}".format(key_uuid, value, gathered_docs))
                 
-                if cursorMark == nextCursorMark:
+                if params['cursorMark'] == nextCursorMark:
                     done = True
                 
-                cursorMark = nextCursorMark
+                query_params.update({'cursorMark': nextCursorMark})
 
                 # check if further processing is needed
                 # if gathered_docs == hit_count:

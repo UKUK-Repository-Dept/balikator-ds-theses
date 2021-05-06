@@ -227,12 +227,13 @@ class workflow_batch(object):
 
                 log.msg("Collection {}: {} - CURRENTLY PROCESSED DOCS: {}".format(key_uuid, value, len(processed_solr_data)))
                 
+                log.msg("Collection {}: {} - TOTAL PROCESSED DOCS: {}".format(key_uuid, value, gathered_docs))
+                
                 if query_params['cursorMark'] == nextCursorMark:
                     done = True
                 
                 query_params.update({'cursorMark': nextCursorMark})
 
-            log.msg("Collection {}: {} - TOTAL PROCESSED DOCS: {}".format(key_uuid, value, gathered_docs))
                 # check if further processing is needed
                 # if gathered_docs == hit_count:
                 #     get_more_data = False

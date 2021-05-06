@@ -344,34 +344,48 @@ class utility(object):
         img.save(filename=thmb_path)
         return thmb_path
 
-    def get_solr_data(self, info_type="collection_items", collection_id=None, resource_type=None, max_rows=None, start_rows=None):
+    def get_solr_data(self, info_type="collection_items", params=None):
 
         query_url = self.config.get('index_discovery_query_config', 'solr_endpoint') + "/select?q="
         return_format = 'json'
         
         if info_type == 'coll_items_info':
             
-            if max_rows is None:
-                raise Exception("Excepiton at get_solr_data for mode 'coll_items_info': 'rows' param cannot be 'None'")
+            if params = None:
+                raise Exception("Exception at get_solr_data for mode 'coll_items_info': params cannot be 'None'")
+            else:
 
-            if start_rows is None:
-                raise Exception("Excepiton at get_solr_data for mode 'coll_items_info': 'start' param cannot be 'None'")
+                if 'collection_id' not in params.keys():
+                    raise Exception("Exception at get_solr_radata for mode 'coll_items_info': Missing 'collection_id' param")
 
-            if resource_type is None:
-                raise Exception("Exception at get_solr_data for mode 'coll_items_info': resourcetype param cannot be 'None'")
+                if 'resource_type' not in params.keys():
+                    raise Exception("Exception at get_solr_data for mode 'coll_items_info': Missing resource_type param")
+
+                if 'max_rows' not in params.keys():
+                    raise Exception("Exception at get_solr_data for mode 'coll_items_info': Missing 'max_rows' param")
+
+                if 'default_sort_field' not in params.keys():
+                    raise Exception("Exception at get_solr_data for mode 'coll_items_info': Missing 'default_sort_field' param")
+                
+                if 'default_sort_order' not in params.keys():
+                    raise Exception("Exception at get_solr_data for mode 'coll_items_info': Missing 'default_sort_order' param")
+                
+                if 'fields_of_interest' not in params.keys():
+                    raise Exception("Exception at get_solr_data for mode 'coll_items_info': Missing 'fields_of_interest' param")
+
+                if 'cursorMark' is None:
+                    raise Exception("Exception at get_solr_data for mode 'coll_items_info': Missing 'cursorMark'")
             
-            if collection_id is None:
-                raise Exception("Missing value of 'collection_id' param in 'get_solr_data()': value is: " + str(collection_id))
 
-            query_coll = "location.coll:" + str(collection_id) + "+AND+" + "search.resourcetype:" + str(resource_type)
+            query_string = "location.coll:" + str(params['collection_id']) + "+AND+" + "search.resourcetype:" + str(params['resource_type'])
             
-            query_params = query_coll + "&rows=" + str(max_rows) + "&start=" + str(start_rows) + "&wt=" + return_format
+            query_params =  "&rows=" + str(params['max_rows']) + "&fl=" + str(params['fields_of_interest']) + "&sort=" + str(params['default_sort_field']) + "+" + str(params['default_sort_order']) + "&cursorMark=" + str(params['cursorMark']) + "&wt=" + str(return_format)
 
         else:
             raise NotImplementedError("There no functionality implemented for 'info_type=" + info_type + "'")
         
         log.msg("Constructing SOLR query url...")        
-        query_url = query_url + query_params
+        query_url = query_url + query_string + query_params
 
         log.msg(query_url)
 
@@ -399,3 +413,8 @@ class utility(object):
         num_found = pyjq.one('.response | {"numFound": .\"numFound\"}', json_data)
 
         return num_found['numFound']
+
+    def process_solr_cursor_mark(self, json_data):
+        next_cursorMark = pyjq.one('.response | {"cursorMark": .\"nextCursorMark\"}', json_data)
+
+        return next_cursorMark['cursorMark']

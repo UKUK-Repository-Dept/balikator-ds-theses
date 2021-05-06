@@ -179,27 +179,35 @@ class workflow_batch(object):
 
         collection_items_dict = dict()
 
+        # create params dictionary with some generaly used params and their values
+        query_params = {
+            'max_rows': self.config.getint('index_discovery_query_config', 'solr_maxrows'),
+            'fields_of_interest': str(self.config.get("index_discovery_query_config","solr_fields_of_interest")).lstrip().rstrip(),
+            'default_sort_field': self.config.get('index_discovery_query_config', 'solr_default_sort_field'),
+            'default_sort_order': self.config.get('index_discovery_query_config', 'solr_default_sort_order'),
+            'cursorMark': self.config.get("index_discovery_query_config", "sorl_defaultCursorMark"),
+            'resource_type': self.config.get('index_discovery_query_config', 'item_resourcetype')
+            }
+        
         # get items in collection identified by 'HANDLE ID' stored as a key in option_pair
         for key_uuid, value in self.config.items('index_discovery_collections_map'):
 
-            get_more_data = True
+            # update collection_id in the params dictionary
+            query_params.update({'collection_id': key_uuid}}
+
+            done = False
             gathered_docs = 0
-            start_rows = 0
+            
             collection_items_list = list()
 
             log.msg("Getting items in collection {}: {}".format(key_uuid, value))
+            while done is False:
 
-            while get_more_data is True:
+                # get collection data from SOLR (json)
+                json_data = self.utility.get_solr_data( info_type="coll_items_info", params=query_params)
 
-                    # get collection data from SOLR (json)
-                json_data = self.utility.get_solr_data( info_type="coll_items_info", 
-                                                        collection_id=key_uuid,
-                                                        resource_type=self.config.getint('index_discovery_query_config', 'item_resourcetype'),
-                                                        max_rows = self.config.getint('index_discovery_query_config', 'solr_maxrows'),
-                                                        start_rows = start_rows)
-
-                    # get number of hits from collection data
-                hit_count = self.utility.process_solr_item_count(json_data) 
+                # get number of hits from collection data
+                hit_count = self.utility.process_solr_item_count(json_data)
                 
                 log.msg("Collection {}: {} - HIT COUNT: {}".format(key_uuid, value, hit_count))
                 
@@ -210,13 +218,20 @@ class workflow_batch(object):
                 collection_items_list.extend(processed_solr_data) 
                 gathered_docs += len(processed_solr_data)
 
+                nextCursorMark = self.utility.process_solr_cursor_mark(json_data)
+
                 log.msg("Collection {}: {} - PROCESSED DOCS: {}".format(key_uuid, value, gathered_docs))
+                
+                if cursorMark == nextCursorMark:
+                    done = True
+                
+                cursorMark = nextCursorMark
 
                 # check if further processing is needed
-                if gathered_docs == hit_count:
-                    get_more_data = False
-                else:
-                    start_rows+= self.config.getint('index_discovery_query_config', 'solr_maxrows')
+                # if gathered_docs == hit_count:
+                #     get_more_data = False
+                # else:
+                #     start_rows+= self.config.getint('index_discovery_query_config', 'solr_maxrows')
             
             # store list of all items in collection in a dict        
             collection_items_dict[key_uuid] = {"items_count": hit_count, "items_data": collection_items_list}

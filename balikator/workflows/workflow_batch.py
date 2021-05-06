@@ -193,7 +193,7 @@ class workflow_batch(object):
         for key_uuid, value in self.config.items('index_discovery_collections_map'):
 
             # update collection_id in the params dictionary
-            query_params.update({'collection_id': key_uuid}}
+            query_params.update({'collection_id': key_uuid})
 
             done = False
             gathered_docs = 0

@@ -33,14 +33,14 @@ class workflow_doc_finish(object):
             document.commit()
             raise e
 
-        #try:
-        #    log.msg("Cleaning document", document.doc_id)
-        #    self.clean_document(document)
-        #except Exception as e:
-        #    document.state = 'failed'
-        #    document.error = str(e)
-        #    document.commit()
-        #    raise e
+        try:
+           log.msg("Cleaning document", document.doc_id)
+           self.clean_document(document)
+        except Exception as e:
+           document.state = 'failed'
+           document.error = str(e)
+           document.commit()
+           raise e
 
         return document.state
 

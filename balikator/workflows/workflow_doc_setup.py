@@ -37,10 +37,10 @@ class workflow_doc_setup(object):
                 document.commit()
 
             try:
-                aleph_sysno = self.store_aleph_sysno(document)
-                log.msg("Document:", document.doc_id, "Aleph returned SYSNO:", aleph_sysno)
+                lis_id = self.store_lis_id(document)
+                log.msg("Document:", document.doc_id, "LIS (ALMA) returned ID:", lis_id)
                 document.commit()
-                log.msg("Document:", document.doc_id, "Aleph DB SYSNO:", document.aleph_id)
+                log.msg("Document:", document.doc_id, "LIS (ALMA) ID in DB:", document.lis_id)
             except Exception as e:
                 document.errors.append(e)
                 document.error = str(e)
@@ -114,15 +114,21 @@ class workflow_doc_setup(object):
 
         return 'started'
 
-    def store_aleph_sysno(self, doc):
+    def store_lis_id(self, doc):
 
         try:
-            if doc.record_object['001'] is None:
-                doc.aleph_id = None
+            if doc.record_object['001'] is None and doc.recotd_object['998'] is None:
+                doc.lis_id = None
                 return None
             else:
-                doc.aleph_id = doc.record_object['001'].data
-            return doc.record_object['001'].data
+                if doc.record_object['001'] is not None:
+                    doc.lis_id = doc.record_object['001'].data
+                    return doc.record_object['001'].data
+                
+                if doc.record_object['998'] is not None:
+                    doc.lis_id = doc.record_object['998'].data
+                    return doc.record_object['998'].data
+                    
         except Exception as e:
             raise e
 

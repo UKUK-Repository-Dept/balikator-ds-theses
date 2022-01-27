@@ -97,12 +97,12 @@ class Document(object):
 
 
     @property
-    def aleph_id(self):
-        return self.db_int.document.filter_by(did=self.doc_id).first().aleph_id
+    def lis_id(self):
+        return self.db_int.document.filter_by(did=self.doc_id).first().lis_id
 
-    @aleph_id.setter
-    def aleph_id(self, value):
-        self.db_int.document.filter_by(did=self.doc_id).first().aleph_id = value
+    @lis_id.setter
+    def lis_id(self, value):
+        self.db_int.document.filter_by(did=self.doc_id).first().lis_id = value
 
     @property
     def work_type(self):
@@ -134,7 +134,7 @@ class Document(object):
         self.db_int.document.filter_by(did=self.doc_id).first().handle = handle
 
     def audit_document(self):
-        self.db_int.document_audit.insert(did=self.doc_id, repId=self.rep_id, aleph_id=self.aleph_id,
+        self.db_int.document_audit.insert(did=self.doc_id, repId=self.rep_id, lis_id=self.lis_id,
                                           batch_uuid=str(self.batch_uuid), handle=self.document_handle,
                                           direction_process=self.record_direction,
                                           workflow_process=self.workflow_process, kind=self.kind, created=self.created,

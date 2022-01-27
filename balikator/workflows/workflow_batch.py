@@ -278,7 +278,7 @@ class workflow_batch(object):
             :param mapfile_info: dict with information about each theses object currently in DSpace
             :return:
             """
-            header = '#sysno;rep_id;dtl_id;handle'
+            header = '#alma_id;rep_id;dtl_id;handle'
             separator = ';'
 
             # write first line
@@ -302,15 +302,15 @@ class workflow_batch(object):
                     else:
                         dtl_id = ''
 
-                    if ('aleph_sysno' in item_info) and (item_info['aleph_sysno'] is not None):
-                        aleph_id = item_info['aleph_sysno']
+                    if ('lis_id' in item_info) and (item_info['lis_id'] is not None):
+                        lis_id = item_info['lis_id']
 
-                        if len(aleph_id) > 1:
-                            raise Exception("ALEPH SYSNO should be unique identifier, but ALEPH SYSNO COUNT > 1")
+                        if len(lis_id) > 1:
+                            raise Exception("LIS (ALMA) ID should be unique identifier, but LIS (ALMA) ID COUNT > 1")
                         else:
-                            aleph_id = aleph_id[0]
+                            lis_id = lis_id[0]
                     else:
-                        aleph_id = ''
+                        lis_id = ''
 
                     if ('sis_id' in item_info) and (item_info['sis_id'] is not None):
                         doc_did = item_info['sis_id']
@@ -328,7 +328,7 @@ class workflow_batch(object):
                         handle = ''
 
                     # create string from values in s_id_info and write it to the mapfile
-                    map_string = str(aleph_id) + separator + str(doc_did) + separator + str(dtl_id) + separator + str(handle)
+                    map_string = str(lis_id) + separator + str(doc_did) + separator + str(dtl_id) + separator + str(handle)
 
                     try:
                         file_handle.write(map_string + "\n")

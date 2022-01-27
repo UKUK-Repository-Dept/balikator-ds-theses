@@ -12,10 +12,8 @@ class DC_handler(object):
 
     def __init__(self, config):
         """
-        Constructor dc_meta_handler object. Accepts 3 arguments, config, aleph_config and dc_config.
+        Constructor dc_meta_handler object. Accepts 1 argument, config.
         :param config: ConfigParser object containing parsed balikator.ini configuration file
-        :param aleph_map_config: ConfigParser object containing parsed aleph_map.ini configuration file
-        :param dc_config: ConfigParser object containing parsed dc_config.ini configuration file
         """
         self.config = config
         self.DC_HEADER = '<?xml version="1.0" encoding="UTF-8"?>'   # XML header used in dspace package metadata file

@@ -31,7 +31,7 @@ class dc_proto(meta_proto):
         self._subject_cs = self.get_keywords(lang='cs')
         self._subject_en = self.get_keywords(lang='en')
         self._identifier_repId = self.get_identifier_repid()
-        self._identifier_aleph = self.get_identifier_aleph()
+        self._identifier_lis = self.get_identifier_lis()
         self._description_faculty_cs = self.get_description_faculty(lang='cs')
         self._description_faculty_en = self.get_description_faculty(lang='en')
         self._description_department_cs = self.get_description_department(lang='cs')
@@ -414,20 +414,48 @@ class dc_proto(meta_proto):
         except:
             raise Exception('Failed to get document did from metadata')
 
-    def get_identifier_aleph(self):
-        log.msg("Getting document aleph_sysno...")
-        try:
-            identifiers_aleph = list()
-            qualifier = 'aleph'
-            aleph_id = super().get_data('001')
-            if aleph_id is None:
-                return None
+    # def get_identifier_aleph(self):
+    #     log.msg("Getting document aleph_sysno...")
+    #     try:
+    #         identifiers_aleph = list()
+    #         qualifier = 'aleph'
+    #         aleph_id = super().get_data('001')
+    #         if aleph_id is None:
+    #             return None
 
-            identifiers_aleph.append(super().construct_meta_dict(data=aleph_id, tag='identifier', qualifier=qualifier,
-                                                                 language=None))
-            return identifiers_aleph
+    #         identifiers_aleph.append(super().construct_meta_dict(data=aleph_id, tag='identifier', qualifier=qualifier,
+    #                                                              language=None))
+    #         return identifiers_aleph
+    #     except:
+    #         raise Exception('Failed to get document aleph sysno from metadata')
+        
+    def get_identifier_lis(self):
+        
+        log.msg("Getting document's LIS (ALMA) ID...")
+        
+        try:
+            identifiers_lis = list()
+            qualifier = 'lis'
+            lis_id = super().get_data('001')
+            
+            try:
+                if lis_id is not None:
+                    
+                    if utility.check_lis_id_validity(lis_id) is not True:
+                        raise Exception('Invalid LIS ID ', lis_id)
+                else:
+                    return None
+            except Exception as e:
+                log.error(error=e)
+                return None
+            
+            
+            identifiers_lis.append(super().construct_meta_dict(data=lis_id, tag='identifier', qualifier=qualifier, language=None))
+            
+            return identifiers_lis
+        
         except:
-            raise Exception('Failed to get document aleph sysno from metadata')
+            raise Exception("Failed to get document's LIS (ALMA) ID from metadata record")
 
     def get_description_faculty(self, lang):
         log.msg("Getting document faculty...")

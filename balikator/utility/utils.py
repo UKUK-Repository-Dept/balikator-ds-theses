@@ -401,10 +401,10 @@ class utility(object):
                 #       - total count (just to check)
                 #       - handle
                 #       - repid
-                #       - alephID
+                #       - lisID (originaly alephID)
                 #       - dtlID
         
-        items_data = pyjq.all('.response.docs[] | {"handle": .\"handle\", "sis_id": .\"dc.identifier.repId\", "aleph_sysno": .\"dc.identifier.aleph\", "dtl_id": .\"dc.identifier.dtl\"}', json_data)    
+        items_data = pyjq.all('.response.docs[] | {"handle": .\"handle\", "sis_id": .\"dc.identifier.repId\", "lis_id": .\"dc.identifier.lisID\", "dtl_id": .\"dc.identifier.dtl\"}', json_data)    
         
         return items_data
     
@@ -418,3 +418,11 @@ class utility(object):
         next_cursorMark = pyjq.one('{"cursorMark": .nextCursorMark}', json_data)
 
         return next_cursorMark['cursorMark']
+    
+    @staticmethod
+    def check_lis_id_validity(lis_id):
+        
+        if re.match('[99].*[06986]',lis_id):
+            return True
+        
+        return False

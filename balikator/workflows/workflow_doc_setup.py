@@ -117,7 +117,7 @@ class workflow_doc_setup(object):
     def store_lis_id(self, doc):
 
         try:
-            if doc.record_object['001'] is None and doc.recotd_object['998'] is None:
+            if doc.record_object['001'] is None and doc.record_object['998'] is None:
                 doc.lis_id = None
                 return None
             else:

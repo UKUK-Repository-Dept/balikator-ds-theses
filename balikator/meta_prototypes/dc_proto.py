@@ -435,7 +435,7 @@ class dc_proto(meta_proto):
         
         try:
             identifiers_lis = list()
-            qualifier = 'lis'
+            qualifier = 'lisID'
             lis_id = super().get_data('001')
             
             try:

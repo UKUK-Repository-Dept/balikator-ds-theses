@@ -278,7 +278,7 @@ class workflow_batch(object):
             :param mapfile_info: dict with information about each theses object currently in DSpace
             :return:
             """
-            header = '#alma_id;rep_id;dtl_id;handle'
+            header = '#alma_id;did;dtl_id;handle'
             separator = ';'
 
             # write first line

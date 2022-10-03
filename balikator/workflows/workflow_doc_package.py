@@ -842,8 +842,8 @@ class workflow_doc_package(object):
 
         def rename_files():
             for f_id, f_info in doc.work_files.items():
-                filename, extension = os.path.splitext(str(f_info['fnazev']))
-                new_filename = str(f_id) + extension
+                filename, extensions = str(f_info['fnazev']).split(os.path.extsep, 1)
+                new_filename = str(f_id) + '.' + str(extensions)
                 # open metadata file and get information about original file belonging to it
                 log.msg("PREPARE PACKAGE: renaming file", os.path.basename(f_info['local_orig_file']), "to",
                         new_filename)

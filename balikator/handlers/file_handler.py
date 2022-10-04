@@ -98,13 +98,15 @@ class FileHandler(object):
             bundle = 'ORIGINAL'
 
         fid = str(file_info['fid'])
-        filename, extension = os.path.splitext(str(file_info['fnazev']))
+        # filename, extension = os.path.splitext(str(file_info['fnazev']))
+        filename, extensions = str(file_info['fnazev']).split(os.path.extsep, 1)
+        filename = fid + '.' + extensions
         try:
-            log.msg(fid + extension + "\t" + "bundle:" + bundle + "\t" + "permissions:" + permission + " " + "'" +
+            log.msg(filename + "\t" + "bundle:" + bundle + "\t" + "permissions:" + permission + " " + "'" +
                     permission_group + "'" + "\t" + "description:" + description)
 
-            fh.write(fid + extension + "\t" + "bundle:" + bundle + "\t" + "permissions:" + permission + " " + "'" +
-                     permission_group + "'" + "\t" + "description:" + description)
+            fh.write(filename + "\t" + "bundle:" + bundle + "\t" + "permissions:" + permission + " " + "'" +
+                    permission_group + "'" + "\t" + "description:" + description)
             fh.write('\n')
         except Exception as e:
             log.msg(e)

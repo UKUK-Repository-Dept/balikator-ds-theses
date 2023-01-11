@@ -80,14 +80,17 @@ class workflow_batch(object):
 
                 # FIXME: This is not ideal, but it might fix this issue temporarily:
                 # FIXME: https://groups.google.com/d/msg/dspace-tech/c5i0awCKXBM/__z2EXvYAgAJ
-                log.msg("STARTING FORCE REINDEX OF NEW ITEMS:")
-                try:
-                    self.dspace_index_discovery()
-                except Exception as e:
-                    log.msg(e)
-                    log.err('Failed to update DSpace index.')
-                    batch.error = 'Failed to update DSpace index'
-                    batch.commit()
+                # FIXME: Force reindex using [dspace]/bin/dspace index-discovery does not END gracefully at the moment, 
+                # I don't know causes it now, so this will be commented out until solution is found or found unnecessary
+                
+                # log.msg("STARTING FORCE REINDEX OF NEW ITEMS:")
+                # try:
+                #     self.dspace_index_discovery()
+                # except Exception as e:
+                #     log.msg(e)
+                #     log.err('Failed to update DSpace index.')
+                #     batch.error = 'Failed to update DSpace index'
+                #     batch.commit()
 
                 log.msg("Starting create_mapfile() function...")
                 # create map file after whole batch is processed

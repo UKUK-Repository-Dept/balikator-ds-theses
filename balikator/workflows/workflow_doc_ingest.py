@@ -99,16 +99,7 @@ class workflow_doc_ingest(object):
                         log.msg("Document", document.doc_id, "replaced.")
                     else:
                         raise Exception('Failed to replace document ' + document.doc_id)
-                    # if document.unimport_remote(ssh=self.ssh, sftp=self.sftp):
-                    #     log.msg("Document", document.doc_id, "unimported.")
-                    #     # delete mapfile after deleting document, should prevent failure when importing document with
-                    #     # the same mapfile
-                    #     if document.delete_mapfile_remote(sftp_client=self.sftp):
-                    #         log.msg("Mapfile removed.")
-                    #     else:
-                    #         log.msg("No mapfile found.")
-                    # else:
-                    #     raise Exception('Failed to unimport document ' + document.doc_id)
+                    
                 else:
                     log.msg('Document should be replace in local DSpace...')
                     if document.replace_local():

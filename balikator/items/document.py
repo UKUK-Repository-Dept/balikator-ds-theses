@@ -650,7 +650,7 @@ class Document(object):
             raise ex
 
     def reindex_local(self):
-        command = self.construct_command(comm_type='reindex_handle')
+        command = self.construct_command(comm_type='reindex')
         try:
             finished = check_call(command)
             log.msg("Command", command, "returned code:", finished)

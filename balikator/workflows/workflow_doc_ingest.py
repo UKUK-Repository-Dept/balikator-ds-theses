@@ -99,22 +99,26 @@ class workflow_doc_ingest(object):
                         log.msg("Document", document.doc_id, "replaced.")
                     else:
                         raise Exception('Failed to replace document ' + document.doc_id)
-                    # if document.unimport_remote(ssh=self.ssh, sftp=self.sftp):
-                    #     log.msg("Document", document.doc_id, "unimported.")
-                    #     # delete mapfile after deleting document, should prevent failure when importing document with
-                    #     # the same mapfile
-                    #     if document.delete_mapfile_remote(sftp_client=self.sftp):
-                    #         log.msg("Mapfile removed.")
-                    #     else:
-                    #         log.msg("No mapfile found.")
-                    # else:
-                    #     raise Exception('Failed to unimport document ' + document.doc_id)
+                    
+                    log.msg("Document with DID {} and HANDLE {} was replaced in remote DSpace and HAS TO BE REINDEXED in REMOTE DSPACE".format(document.doc_id, document.handle))
+                    if document.reindex_remote(ssh=self.ssh):
+                        log.msg('Document (DID {} / HANDLE {}) was REINDEXED SUCCESSFULLY IN REMOTE DSPACE'.format(document.doc_id, document.handle))
+                    else:
+                        raise Exception('Failed to reindex document (DID: ' + document.doc_id + '/ HANDLE: ' + document.handle + ')')
+                    
                 else:
-                    log.msg('Document should be replace in local DSpace...')
+                    log.msg('Document should be replaced in local DSpace...')
                     if document.replace_local():
                         log.msg("Document", document.doc_id, "replaced.")
                     else:
                         raise Exception('Failed to replace document ' + document.doc_id)
+
+                    log.msg("Document with DID {} and HANDLE {} was replaced in local DSpace and HAS TO BE REINDEXED in LOCAL DSPACE".format(document.doc_id, document.handle))
+                    if document.reindex_local():
+                        log.msg('Document (DID {} / HANDLE {}) was REINDEXED SUCCESSFULLY IN LOCAL DSPACE'.format(document.doc_id, document.handle))
+                    else:
+                        raise Exception('Failed to reindex document (DID: ' + document.doc_id + '/ HANDLE: ' + document.handle + ')')
+                    
             else:
                 # document should be updated but doesn't have a handle in the database
                 raise Exception('Document should be updated but has no handle in the database.')

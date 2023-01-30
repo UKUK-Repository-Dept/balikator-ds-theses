@@ -470,6 +470,24 @@ class Document(object):
 
         return command
 
+    def create_command_reindex(self):
+        if self.config.getboolean('dspace', 'is_remote') is True:
+            command_part = self.config.get('index_discovery', 'command')
+            command_identifier_flag = self.config.get('index_discovery', 'command_index_identifier_flag')
+            item_handle = self.handle
+
+            command = command_part + ' ' + command_identifier_flag + ' ' + item_handle
+
+        else:
+            command_part = self.config.get('index_discovery_local', 'command_ds')
+            command_part_index_discovery = self.config.get('index_discovery_local', 'command_index_discovery')
+            command_identifier_flag = self.config.get('index_discovery', 'command_index_identifier_flag')
+            item_handle = self.handle
+            command = [command_part, command_part_index_discovery, command_identifier_flag, item_handle]
+        
+        return command
+
+
     def create_command_delete(self, mapfile_path):
         """
 
@@ -535,11 +553,14 @@ class Document(object):
 
             command = self.create_command_delete(mapfile_path=mapfile_path)
 
+        elif comm_type == 'reindex':
+            command = self.create_command_reindex()
+
         else:
             raise Exception('Unknown DSpace command type.')
 
         log.msg('DSPACE IS REMOTE:', self.config.get('dspace', 'is_remote'))
-        log.msg('DSPACE COMMAND:', command)
+        log.msg('DSPACE COMMAND (TYPE: {}): {}'.format(comm_type, command))
 
         return command
 
@@ -598,6 +619,22 @@ class Document(object):
         else:
             return True
 
+    def reindex_remote(self, ssh):
+        command = self.construct_command(comm_type='reindex')
+        try:
+            stdin, stdout, stderr = ssh.exec_command(command)
+        except Exception as e:
+            raise e
+
+        log.msg("Remote reindex of item (DID: {}/ HANDLE: {}) finished with exit code: {}".format(self.doc_id, self.handle, stdout.channel.recv_exit_status()))
+        log.msg("Standard output:\n", stdout)
+        log.msg("Error output:\n", stderr)
+
+        if stdout.channel.recv_exit_status() != 0:
+            raise Exception('Failed to reindex document ' + '(' + 'DID: ' + self.doc_id + '/' + 'HANDLE: ' + self.handle + ')' + ' ' + 'in DSpace SOLR')
+        else:
+            return True
+
     def replace_local(self):
         command = self.construct_command(comm_type='update')
         try:
@@ -609,6 +646,20 @@ class Document(object):
             log.msg("Command", command, "returned error code:", e.returncode)
             log.msg(e)
             raise Exception('Failed to ingest document to DSpace.')
+        except Exception as ex:
+            raise ex
+
+    def reindex_local(self):
+        command = self.construct_command(comm_type='reindex')
+        try:
+            finished = check_call(command)
+            log.msg("Command", command, "returned code:", finished)
+            log.msg("Document (DID: {} / HANDLE: {}) reindexed.".format(self.doc_id, self.handle))
+            return True
+        except CalledProcessError as e:
+            log.msg("Command", command, "returned error code:", e.returncode)
+            log.msg(e)
+            raise Exception('Failed to reindex document ' + '(' + 'DID: ' + self.doc_id + '/' + 'HANDLE: ' + self.handle + ')' + ' ' + 'in DSpace SOLR.')
         except Exception as ex:
             raise ex
 
